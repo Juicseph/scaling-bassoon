@@ -887,7 +887,7 @@ tr.drag-over td{border-top:2px solid var(--accent);}
 <div class="shell">
   <div class="sidebar" id="sidebar">
     <div class="sb-head">
-      <div><div class="sb-logo"><span class="sb-logo-text">TourneyTrack</span></div><div class="sb-tagline">Tournament manager</div></div>
+      <div><div class="sb-logo"><span class="sb-logo-text">TourneyTrack</span></div><div class="sb-tagline">it just makes sense</div></div>
       <div style="display:flex;gap:4px;align-items:center">
         <button class="theme-toggle" id="theme-btn" onclick="cycleTheme()" title="Change theme">🕹 <span>90s</span></button>
         <button class="sidebar-collapse-btn" id="sb-collapse-btn" onclick="toggleSidebar()" title="Collapse sidebar">◀</button>
@@ -898,6 +898,7 @@ tr.drag-over td{border-top:2px solid var(--accent);}
     <div class="sb-scroll" id="sb-scroll"></div>
     <button class="sb-add" id="add-pool-btn" onclick="openNewPoolModal()"><span class="plus-icon" style="font-size:15px">+</span><span>Add pool</span></button>
     <div class="sb-foot" id="sb-foot">
+      <button class="sb-foot-btn" onclick="showAbout()">📖 About TourneyTrack</button>
       <button class="sb-foot-btn" onclick="showShareModal()">🔗 Share / QR code</button>
       <button class="sb-foot-btn" onclick="openSyncSetupModal()">☁️ Live sync setup</button>
       <button class="sb-foot-btn" onclick="printStandings()">🖨 Print standings</button>
@@ -1885,6 +1886,190 @@ function showWizardStep(){
 function advanceWizard(){wizardStep++;setTimeout(showWizardStep,300);}
 function finishWizard(){document.getElementById('wizard-overlay').style.display='none';localStorage.setItem('tt_wizard_done','1');}
 function wizardNotify(event){if(!shouldShowWizard())return;const step=WIZARD_STEPS[wizardStep];if(step&&step.waitFor===event)advanceWizard();}
+
+
+// ── ABOUT ──
+function showAbout(){
+  document.getElementById('modal-inner').innerHTML=`
+<style>
+.ab{max-width:620px}
+.ab-hero{text-align:center;padding:24px 16px 20px;border-bottom:1px solid var(--border);margin-bottom:0}
+.ab-logo{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--accent);font-family:var(--mono)}
+.ab-tag{font-size:14px;color:var(--text3);margin-top:4px;font-style:italic}
+.ab-lead{font-size:15px;font-weight:600;color:var(--text);margin:14px 0 6px;line-height:1.5}
+.ab-sub{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:4px}
+.ab-section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.ab-section:last-child{border-bottom:none}
+.ab-section-title{font-size:13px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ab-list{margin:0;padding:0;list-style:none}
+.ab-list li{font-size:12px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.5}
+.ab-list li::before{content:'·';position:absolute;left:4px;color:var(--accent);font-weight:700}
+.ab-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.ab-theme-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.ab-theme-pill{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.ab-cta{text-align:center;padding:20px 16px;background:var(--accent-bg);border-top:1px solid var(--accent-border)}
+.ab-cta-title{font-size:15px;font-weight:700;color:var(--accent);margin-bottom:6px}
+.ab-cta-sub{font-size:12px;color:var(--text2);line-height:1.6}
+.ab-replace{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.ab-replace span{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--text3);text-decoration:line-through}
+</style>
+<div class="ab">
+  <div class="ab-hero">
+    <div class="ab-logo">TourneyTrack</div>
+    <div class="ab-tag">it just makes sense</div>
+    <div class="ab-lead">Run your entire tournament from one file.</div>
+    <div class="ab-sub">No apps. No logins. No chaos. Just clean schedules, live scores, and automatic brackets — on any device.</div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>⚡</span> Set Up in Minutes</div>
+    <div class="ab-sub" style="margin-bottom:8px">Create your tournament and get games rolling fast:</div>
+    <ul class="ab-list">
+      <li>Multiple tournaments with up to 10 pools each</li>
+      <li>Organize by division (12U, 14U, Open, etc.)</li>
+      <li>Add 3–75 teams per pool with optional seeding</li>
+      <li>Built-in team library with auto-fill + bulk paste</li>
+      <li>No spreadsheets. No formatting headaches.</li>
+    </ul>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>📅</span> Smart Scheduling That Actually Works</div>
+    <div class="ab-cols">
+      <ul class="ab-list">
+        <li>Round robin (single or double)</li>
+        <li>Custom match limits per team</li>
+        <li>Automatic bye handling</li>
+      </ul>
+      <ul class="ab-list">
+        <li>Multi-day sessions &amp; locations</li>
+        <li>Auto court assignment</li>
+        <li>Drag, edit, or add matches on the fly</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>🏐🏀</span> Built for Volleyball &amp; Basketball</div>
+    <div class="ab-cols">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Volleyball</div>
+        <ul class="ab-list">
+          <li>1 set, 2 sets, or Best of 3</li>
+          <li>Auto win detection</li>
+          <li>Smart set locking</li>
+          <li>One-set tiebreaker mode</li>
+        </ul>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Basketball</div>
+        <ul class="ab-list">
+          <li>Final, halves, or quarters entry</li>
+          <li>Overtime tracking</li>
+          <li>Auto totals + winner detection</li>
+          <li>Bracket OT auto-appears on tie</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>📊</span> Live Standings That Explain Themselves</div>
+    <ul class="ab-list">
+      <li>Real-time standings as scores come in</li>
+      <li>Custom tiebreaker order (sets, head-to-head, point diff, match wins)</li>
+      <li>Built-in tiebreaker explanation — no more arguments about 2nd place</li>
+      <li>Export to CSV or print clean standings sheets</li>
+    </ul>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>🏅</span> Automatic Playoff Brackets</div>
+    <ul class="ab-list">
+      <li>Auto-seeded single elimination from live standings</li>
+      <li>Sport-specific scoring (set-by-set for VB, final + OT for BB)</li>
+      <li>Champion banner when final is complete</li>
+      <li>View-only mode so spectators can follow live</li>
+    </ul>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>📡</span> Share Scores Instantly</div>
+    <ul class="ab-list">
+      <li>Live QR code — scan once, always current (no resending)</li>
+      <li>Viewer devices auto-refresh every 15 seconds</li>
+      <li>Share via link, text, or AirDrop</li>
+      <li>Offline fallback available without any account</li>
+    </ul>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>🗂️</span> More Built-In Tools</div>
+    <div class="ab-cols">
+      <ul class="ab-list">
+        <li>Court-by-court live view</li>
+        <li>Per-team match history</li>
+        <li>Tournament archive &amp; restore</li>
+        <li>Copy pools into new events</li>
+      </ul>
+      <ul class="ab-list">
+        <li>Awards tracker (MVP, Best Setter, etc.)</li>
+        <li>Custom award names + notes</li>
+        <li>Site director name per pool</li>
+        <li>Collapsible sidebar for more space</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>🎨</span> 6 Built-In Themes</div>
+    <div class="ab-theme-row">
+      <span class="ab-theme-pill">🌿 Modern</span>
+      <span class="ab-theme-pill">🕹️ 90s Retro</span>
+      <span class="ab-theme-pill">✨ Trendy</span>
+      <span class="ab-theme-pill">💼 Pro Dark</span>
+      <span class="ab-theme-pill">🔥 NBA Jam</span>
+      <span class="ab-theme-pill">🍎 Apple Classic</span>
+    </div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>⚙️</span> Designed for Real Use</div>
+    <div class="ab-cols">
+      <ul class="ab-list">
+        <li>Works on any browser, any device</li>
+        <li>No install required — one HTML file</li>
+        <li>Auto-saves everything, instantly</li>
+        <li>Add to Home Screen for app feel</li>
+      </ul>
+      <ul class="ab-list">
+        <li>Fully keyboard-friendly</li>
+        <li>Cloud sync for live score sharing</li>
+        <li>One-click reset to start fresh</li>
+        <li>Works offline, no internet needed</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ab-cta">
+    <div class="ab-cta-title">🚀 Why TourneyTrack?</div>
+    <div class="ab-cta-sub">Because running a tournament shouldn't feel like managing five different tools.<br>TourneyTrack replaces:</div>
+    <div class="ab-replace">
+      <span>Spreadsheets</span>
+      <span>Bracket builders</span>
+      <span>Score trackers</span>
+      <span>Group chats</span>
+      <span>Printed schedules</span>
+    </div>
+    <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--accent)">Open the file. Set up your pools. Run your event. That's it.</div>
+  </div>
+</div>
+<div class="modal-actions" style="border-top:1px solid var(--border);padding-top:14px;margin-top:0"><button class="btn btn-primary" onclick="closeModal()">Got it 👊</button></div>`;
+  // Widen the modal for About
+  const mi=document.getElementById('modal-inner');
+  if(mi)mi.style.maxWidth='660px';
+  showModal();
+}
 
 // ── INIT ──
 function addToLibrary(name){if(!name||name.startsWith('Team '))return;if(!state.teamLibrary)state.teamLibrary=[];if(state.teamLibrary.length<75&&!state.teamLibrary.includes(name)){state.teamLibrary.push(name);save();}}
