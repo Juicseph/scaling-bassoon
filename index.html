@@ -685,6 +685,201 @@ tr.drag-over td{border-top:2px solid var(--accent);}
 [data-theme="nbajam"] .award-pos-mvp{background:#110022;color:#cc00ff;border-color:#cc00ff;}
 [data-theme="nbajam"] .pool-dot{box-shadow:0 0 4px currentColor;}
 @keyframes jamFire{0%{background-position:0% 0}50%{background-position:100% 0}100%{background-position:200% 0}}
+
+/* ═══════════════════════════════════
+   APPLE CLASSIC THEME 🍎
+   Platinum / System 7 / Aqua Lite
+═══════════════════════════════════ */
+[data-theme="apple"]{
+  --bg:#e8e8e8;--surface:#f5f5f5;--surface2:#dddddd;--surface3:#c8c8c8;
+  --border:#aaaaaa;--border2:#888888;--text:#000000;--text2:#333333;--text3:#666666;
+  --accent:#0050d0;--accent2:#003faa;--accent-bg:#ddeeff;--accent-border:#88bbff;
+  --green:#007000;--green-bg:#ccffcc;--green-border:#88cc88;
+  --blue:#0050d0;--blue-bg:#ddeeff;--blue-border:#88bbff;
+  --gold:#996600;--gold-bg:#fff8cc;--gold-border:#ddcc44;
+  --purple:#660099;--purple-bg:#eeddff;--purple-border:#bb88ee;
+  --r:6px;--sans:-apple-system,'Chicago','Charcoal',Helvetica,sans-serif;--mono:'Monaco','Courier New',monospace;--sb-width:240px;
+}
+/* Platinum window chrome */
+[data-theme="apple"] body,[data-theme="apple"] .shell{background:#e8e8e8;}
+[data-theme="apple"] .sidebar{
+  background:linear-gradient(180deg,#f0f0f0 0%,#e0e0e0 100%);
+  border-right:1px solid #999;
+  box-shadow:inset -1px 0 0 #fff;
+}
+[data-theme="apple"] .main{background:#e8e8e8;}
+[data-theme="apple"] .sb-logo{
+  color:#000;font-size:13px;font-weight:700;letter-spacing:0;
+  background:linear-gradient(90deg,#ff3b30,#ff9500,#ffcc00,#34c759,#007aff,#5856d6);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+[data-theme="apple"] .sb-tagline{color:#666;font-size:10px;}
+/* Classic Mac window title bar style cards */
+[data-theme="apple"] .card{
+  background:#f5f5f5;
+  border:1px solid #999;
+  border-radius:6px;
+  box-shadow:1px 1px 0 #fff inset, -1px -1px 0 #aaa inset, 0 2px 4px rgba(0,0,0,.15);
+}
+[data-theme="apple"] .card-title{
+  color:#000;font-weight:700;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;
+}
+/* Aqua-style tabs */
+[data-theme="apple"] .tab-bar{
+  background:linear-gradient(180deg,#e8e8e8,#d8d8d8);
+  border:1px solid #aaa;
+  border-radius:6px;
+  box-shadow:inset 0 1px 0 #fff;
+}
+[data-theme="apple"] .tab{color:#333;border-radius:4px;font-size:12px;}
+[data-theme="apple"] .tab:hover{background:rgba(0,0,0,.07);}
+[data-theme="apple"] .tab.active{
+  background:linear-gradient(180deg,#fff 0%,#f0f0f0 50%,#e0e0e0 100%);
+  color:#000;
+  box-shadow:0 1px 3px rgba(0,0,0,.2),inset 0 1px 0 #fff;
+  border:1px solid #aaa;
+}
+/* Classic Aqua buttons */
+[data-theme="apple"] .btn{
+  background:linear-gradient(180deg,#f8f8f8,#e0e0e0);
+  border:1px solid #999;
+  border-radius:5px;
+  color:#000;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 1px 2px rgba(0,0,0,.15);
+  font-size:12px;
+}
+[data-theme="apple"] .btn:hover{background:linear-gradient(180deg,#fff,#e8e8e8);border-color:#888;}
+[data-theme="apple"] .btn-primary{
+  background:linear-gradient(180deg,#5aa8ff,#0050d0);
+  color:#fff;border-color:#003faa;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 1px 3px rgba(0,80,208,.4);
+}
+[data-theme="apple"] .btn-primary:hover{background:linear-gradient(180deg,#66b4ff,#0060e0);color:#fff;}
+[data-theme="apple"] .btn-danger{color:#cc0000;border-color:#cc8888;}
+[data-theme="apple"] .btn-danger:hover{background:linear-gradient(180deg,#fff5f5,#ffe0e0);}
+[data-theme="apple"] .btn-ok{background:linear-gradient(180deg,#ccffcc,#88cc88);color:#005500;border-color:#66aa66;}
+[data-theme="apple"] .btn-ghost{background:transparent;border:1px dashed #aaa;color:#555;box-shadow:none;}
+[data-theme="apple"] .btn-ghost:hover{background:#f0f0f0;border-color:#888;color:#000;}
+/* Pills */
+[data-theme="apple"] .pill{
+  background:linear-gradient(180deg,#f0f0f0,#e0e0e0);
+  border:1px solid #aaa;border-radius:10px;color:#333;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+[data-theme="apple"] .pill:hover{background:linear-gradient(180deg,#f8f8f8,#e8e8e8);}
+[data-theme="apple"] .pill.active{
+  background:linear-gradient(180deg,#5aa8ff,#0050d0);
+  color:#fff;border-color:#003faa;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
+}
+/* Inputs — classic beveled inset */
+[data-theme="apple"] input[type=text],[data-theme="apple"] input[type=number],[data-theme="apple"] select{
+  background:#fff;
+  border:1px solid #999;
+  border-radius:4px;
+  color:#000;
+  box-shadow:inset 1px 1px 3px rgba(0,0,0,.15);
+}
+[data-theme="apple"] input:focus,[data-theme="apple"] select:focus{
+  border-color:#0050d0;
+  box-shadow:inset 1px 1px 3px rgba(0,0,0,.1),0 0 0 3px rgba(0,80,208,.2);
+}
+/* Score boxes */
+[data-theme="apple"] .score-box{
+  background:#fff;border-color:#999;color:#000;font-weight:700;font-size:19px;
+  box-shadow:inset 1px 1px 3px rgba(0,0,0,.15);
+}
+[data-theme="apple"] .score-box:focus{border-color:#0050d0;background:#f0f8ff;box-shadow:inset 1px 1px 2px rgba(0,0,0,.1),0 0 0 3px rgba(0,80,208,.2);}
+[data-theme="apple"] .score-sep{background:#e8e8e8;border-color:#aaa;color:#666;}
+[data-theme="apple"] .bm-score-inp{background:#fff;border-color:#999;color:#000;font-weight:700;font-size:17px;box-shadow:inset 1px 1px 3px rgba(0,0,0,.12);}
+[data-theme="apple"] .bm-score-inp:focus{border-color:#0050d0;background:#f0f8ff;}
+[data-theme="apple"] .bm-sep{color:#555;}
+/* Sidebar items — Mac list row style */
+[data-theme="apple"] .pool-item:hover{background:rgba(0,0,0,.05);}
+[data-theme="apple"] .pool-item.active{background:linear-gradient(90deg,#0050d0,#0070ff);border-radius:4px;}
+[data-theme="apple"] .pool-item.active .pool-name{color:#fff;}
+[data-theme="apple"] .tournament-pill:hover{background:rgba(0,0,0,.05);}
+[data-theme="apple"] .tournament-pill.active{background:linear-gradient(90deg,#0050d0,#0070ff);}
+[data-theme="apple"] .tournament-pill.active .tp-name{color:#fff;}
+[data-theme="apple"] .add-tournament-btn{background:linear-gradient(180deg,#f8f8f8,#e8e8e8);border:1px dashed #aaa;border-radius:5px;color:#555;}
+[data-theme="apple"] .add-tournament-btn:hover{border-color:#0050d0;color:#0050d0;background:linear-gradient(180deg,#f0f8ff,#e8f0ff);}
+[data-theme="apple"] .sb-add{background:transparent;border:1px dashed #aaa;border-radius:5px;}
+[data-theme="apple"] .sb-foot-btn{
+  background:linear-gradient(180deg,#f5f5f5,#e5e5e5);
+  border:1px solid #aaa;
+  color:#333;border-radius:5px;font-size:11px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+[data-theme="apple"] .sb-foot-btn:hover{background:linear-gradient(180deg,#fff,#ececec);color:#000;}
+/* Page title — rainbow apple vibe */
+[data-theme="apple"] .page-title{color:#000;font-weight:700;font-size:22px;}
+[data-theme="apple"] .page-sub{color:#555;}
+/* Progress */
+[data-theme="apple"] .progress-wrap{background:#f5f5f5;border:1px solid #aaa;box-shadow:inset 0 1px 2px rgba(0,0,0,.1);}
+[data-theme="apple"] .progress-bar{background:#ddd;border-radius:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,.1);}
+[data-theme="apple"] .progress-fill{
+  background:linear-gradient(180deg,#66b4ff,#0050d0);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.4);
+}
+[data-theme="apple"] .progress-fill.done{background:linear-gradient(180deg,#66dd66,#007000);}
+/* Tables */
+[data-theme="apple"] td{color:#000;}
+[data-theme="apple"] th{color:#444;background:#e8e8e8;}
+[data-theme="apple"] tr:hover td{background:#ddeeff;}
+[data-theme="apple"] tr.row-done td{opacity:.45;}
+[data-theme="apple"] tr.bye-row td{background:#fff8cc;}
+/* Bracket */
+[data-theme="apple"] .bm{background:#f5f5f5;border:1px solid #aaa;border-radius:5px;box-shadow:1px 1px 3px rgba(0,0,0,.12);}
+[data-theme="apple"] .bm.bm-active{border-color:#0050d0;box-shadow:0 0 0 2px rgba(0,80,208,.2);}
+[data-theme="apple"] .bt{border-bottom-color:#ccc;color:#000;}
+[data-theme="apple"] .bt.winner{background:linear-gradient(180deg,#ccffcc,#aaeebb);color:#005500;}
+[data-theme="apple"] .bt.loser{opacity:.45;}
+[data-theme="apple"] .bt.tbd{color:#888;font-style:italic;}
+[data-theme="apple"] .bm-score-row{background:#e8e8e8;border-top:1px solid #ccc;}
+[data-theme="apple"] .bracket-connector{border-top-color:#aaa;}
+/* Modal — classic Mac dialog */
+[data-theme="apple"] .modal{
+  background:#e8e8e8;
+  border:2px solid #888;
+  border-radius:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.8);
+}
+[data-theme="apple"] .modal-title{
+  color:#000;font-weight:700;
+  padding-bottom:8px;
+  border-bottom:1px solid #ccc;
+  margin-bottom:10px !important;
+}
+[data-theme="apple"] .modal-sub{color:#444;}
+[data-theme="apple"] .modal-row label{color:#444;font-weight:600;}
+/* Rank badges */
+[data-theme="apple"] .rank-num{background:#ddd;color:#444;border:1px solid #aaa;box-shadow:inset 0 1px 0 rgba(255,255,255,.7);}
+[data-theme="apple"] .rank-1 .rank-num{background:linear-gradient(180deg,#ffe066,#ccaa00);color:#000;border-color:#aa8800;box-shadow:inset 0 1px 0 rgba(255,255,255,.4);}
+[data-theme="apple"] .rank-2 .rank-num{background:linear-gradient(180deg,#e0e0e0,#b0b0b0);color:#000;border-color:#888;}
+[data-theme="apple"] .rank-3 .rank-num{background:linear-gradient(180deg,#ffccaa,#cc7744);color:#000;border-color:#aa5522;}
+/* Sets / format selectors */
+[data-theme="apple"] .sets-opt{background:linear-gradient(180deg,#f8f8f8,#e0e0e0);border:1px solid #aaa;color:#333;border-radius:4px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8);}
+[data-theme="apple"] .sets-opt:hover{background:linear-gradient(180deg,#fff,#e8e8e8);}
+[data-theme="apple"] .sets-opt.active{background:linear-gradient(180deg,#5aa8ff,#0050d0);color:#fff;border-color:#003faa;box-shadow:inset 0 1px 0 rgba(255,255,255,.3);}
+/* Toggle switch */
+[data-theme="apple"] .toggle-slider{background:#bbb;border-radius:20px;}
+[data-theme="apple"] .toggle input:checked+.toggle-slider{background:linear-gradient(180deg,#5aa8ff,#0050d0);}
+/* Misc */
+[data-theme="apple"] .welcome-title{color:#000;font-weight:700;}
+[data-theme="apple"] .welcome-sub{color:#555;}
+[data-theme="apple"] .tie-card{background:#fff8cc;border:1px solid #ccaa44;}
+[data-theme="apple"] .tie-group{background:#f5f5f5;border:1px solid #ccc;}
+[data-theme="apple"] .hist-card{background:#f5f5f5;border:1px solid #bbb;box-shadow:1px 1px 2px rgba(0,0,0,.1);}
+[data-theme="apple"] .court-card{background:#f5f5f5;border:1px solid #bbb;}
+[data-theme="apple"] .badge-done{background:#ccffcc;color:#005500;border-color:#88cc88;}
+[data-theme="apple"] .badge-bye{background:#fff8cc;color:#996600;border-color:#ccaa44;}
+[data-theme="apple"] .award-pos-1{background:#fff8cc;color:#996600;border-color:#ccaa44;}
+[data-theme="apple"] .view-banner{background:#ddeeff;border-bottom:1px solid #aabbdd;color:#003399;}
+[data-theme="apple"] .drag-handle{color:#aaa;}
+[data-theme="apple"] .session-sel{background:#fff;border-color:#aaa;color:#000;box-shadow:inset 1px 1px 2px rgba(0,0,0,.1);}
+[data-theme="apple"] .theme-toggle{border:1px solid #aaa;background:linear-gradient(180deg,#f8f8f8,#e0e0e0);color:#333;border-radius:5px;}
+[data-theme="apple"] .sidebar-collapse-btn{color:#555;}
 </style>
 </head>
 <body>
@@ -726,8 +921,8 @@ let editingMatchIdx=null;
 
 // ── THEME ──
 function loadTheme(){const t=localStorage.getItem('tt_theme')||'modern';document.documentElement.setAttribute('data-theme',t);updateThemeBtn(t);}
-function updateThemeBtn(t){const btn=document.getElementById('theme-btn');if(!btn)return;if(t==='modern')btn.innerHTML='🕹 <span>90s</span>';else if(t==='90s')btn.innerHTML='✨ <span>Trendy</span>';else if(t==='trendy')btn.innerHTML='💼 <span>Pro</span>';else if(t==='pro')btn.innerHTML='🔥 <span>JAM</span>';else btn.innerHTML='🌿 <span>Modern</span>';}
-function cycleTheme(){const cur=document.documentElement.getAttribute('data-theme')||'modern';const next=cur==='modern'?'90s':cur==='90s'?'trendy':cur==='trendy'?'pro':cur==='pro'?'nbajam':'modern';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('tt_theme',next);updateThemeBtn(next);}
+function updateThemeBtn(t){const btn=document.getElementById('theme-btn');if(!btn)return;if(t==='modern')btn.innerHTML='🕹 <span>90s</span>';else if(t==='90s')btn.innerHTML='✨ <span>Trendy</span>';else if(t==='trendy')btn.innerHTML='💼 <span>Pro</span>';else if(t==='pro')btn.innerHTML='🔥 <span>JAM</span>';else if(t==='nbajam')btn.innerHTML='🍎 <span>Apple</span>';else btn.innerHTML='🌿 <span>Modern</span>';}
+function cycleTheme(){const cur=document.documentElement.getAttribute('data-theme')||'modern';const next=cur==='modern'?'90s':cur==='90s'?'trendy':cur==='trendy'?'pro':cur==='pro'?'nbajam':cur==='nbajam'?'apple':'modern';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('tt_theme',next);updateThemeBtn(next);}
 loadTheme();
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
@@ -1340,9 +1535,28 @@ function renderBracket(p){
       let scoreInputs='';
       if(a&&b&&!isBye2&&!IS_VIEW){
         if(isBball(p)){
-          // Basketball: one pair of score boxes for the final score
-          const sa=bs.bk_a||'',sb2=bs.bk_b||'';
-          scoreInputs=`<div style="display:flex;align-items:center;gap:4px;padding:5px 8px"><span style="font-family:var(--mono);font-size:9px;color:var(--text3)">Final</span><input class="bm-score-inp" type="number" min="0" max="999" value="${sa}" placeholder="–" data-mid="${id}" data-field="bk_a" oninput="setBracketScore('${id}','bk_a',this.value)" style="width:52px;font-size:18px"><span class="bm-sep" style="font-size:18px">:</span><input class="bm-score-inp" type="number" min="0" max="999" value="${sb2}" placeholder="–" data-mid="${id}" data-field="bk_b" oninput="setBracketScore('${id}','bk_b',this.value)" style="width:52px;font-size:18px"></div>`;
+          // Basketball bracket: Regulation + optional OT
+          const sa=bs.bk_a||'',sb2=bs.bk_b||'',ota=bs.bk_ota||'',otb=bs.bk_otb||'';
+          const regTa=parseInt(sa)||0,regTb=parseInt(sb2)||0;
+          const otTa=parseInt(ota)||0,otTb=parseInt(otb)||0;
+          const totalA=regTa+otTa,totalB=regTb+otTb;
+          const tied=regTa>0&&regTa===regTb;
+          scoreInputs=`<div style="padding:5px 8px;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:${tied||otTa||otTb?'4px':'0'}">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--text3);width:20px">REG</span>
+              <input class="bm-score-inp" type="number" min="0" max="999" value="${sa}" placeholder="–" data-mid="${id}" data-field="bk_a" oninput="setBracketScore('${id}','bk_a',this.value)" style="width:50px;font-size:17px">
+              <span class="bm-sep" style="font-size:17px">:</span>
+              <input class="bm-score-inp" type="number" min="0" max="999" value="${sb2}" placeholder="–" data-mid="${id}" data-field="bk_b" oninput="setBracketScore('${id}','bk_b',this.value)" style="width:50px;font-size:17px">
+            </div>
+            ${tied||otTa||otTb?`<div style="display:flex;align-items:center;gap:4px">
+              <span style="font-family:var(--mono);font-size:9px;color:var(--accent);width:20px">OT</span>
+              <input class="bm-score-inp" type="number" min="0" max="999" value="${ota}" placeholder="–" data-mid="${id}" data-field="bk_ota" oninput="setBracketScore('${id}','bk_ota',this.value)" style="width:50px;font-size:17px;border-color:var(--accent)">
+              <span class="bm-sep" style="font-size:17px;color:var(--accent)">:</span>
+              <input class="bm-score-inp" type="number" min="0" max="999" value="${otb}" placeholder="–" data-mid="${id}" data-field="bk_otb" oninput="setBracketScore('${id}','bk_otb',this.value)" style="width:50px;font-size:17px;border-color:var(--accent)">
+            </div>`:''}
+            ${sa&&sb2&&!tied&&(totalA!==totalB)?`<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;text-align:center">${totalA>totalB?aName+' wins '+totalA+'-'+totalB:bName+' wins '+totalB+'-'+totalA}</div>`:''}
+            ${tied&&!otTa&&!otTb?`<div style="font-family:var(--mono);font-size:10px;color:var(--accent);margin-top:1px;text-align:center">TIE — enter OT above</div>`:''}
+          </div>`;
         } else {
           const setsToShow=p.oneSetTiebreaker?1:maxSets;
           for(let si=0;si<setsToShow;si++){
@@ -1355,10 +1569,10 @@ function renderBracket(p){
       }
       // For display: get score totals correctly
       let aT=0,bT=0;
-      if(isBball(p)){aT=parseInt(bs.bk_a)||0;bT=parseInt(bs.bk_b)||0;}
+      if(isBball(p)){aT=(parseInt(bs.bk_a)||0)+(parseInt(bs.bk_ota)||0);bT=(parseInt(bs.bk_b)||0)+(parseInt(bs.bk_otb)||0);}
       else{getBracketSets(bs).forEach(r=>{if(!r)return;if(r.a>r.b)aT++;else if(r.b>r.a)bT++;});}
       const viewScores=IS_VIEW&&a&&b&&!isBye2?(()=>{
-        if(isBball(p)){const ta=parseInt(bs.bk_a)||0,tb=parseInt(bs.bk_b)||0;return(ta||tb)?`<div style="padding:3px 8px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text2)">${ta} – ${tb}</div>`:''}
+        if(isBball(p)){const ta=(parseInt(bs.bk_a)||0)+(parseInt(bs.bk_ota)||0),tb=(parseInt(bs.bk_b)||0)+(parseInt(bs.bk_otb)||0);const ot=parseInt(bs.bk_ota)||parseInt(bs.bk_otb);return(ta||tb)?`<div style="padding:3px 8px;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text2)">${ta} – ${tb}${ot?' <span style="font-size:10px;color:var(--accent)">(OT)</span>':''}</div>`:''}
         const parts=[];for(let si=0;si<(p.oneSetTiebreaker?1:maxSets);si++){const sv=['s1','s2','s3'][si];if(bs[sv+'a']!==undefined&&bs[sv+'a']!=='')parts.push(`${bs[sv+'a']}:${bs[sv+'b']}`);}
         return parts.length?`<div style="padding:3px 8px;font-family:var(--mono);font-size:11px;color:var(--text2)">${parts.join(' | ')}</div>`:''
       })():'';
@@ -1375,9 +1589,11 @@ function renderBracket(p){
 function getBracketSets(bs){return[['s1a','s1b'],['s2a','s2b'],['s3a','s3b']].map(([ak,bk])=>{const na=parseInt(bs[ak]),nb=parseInt(bs[bk]);if(isNaN(na)||isNaN(nb)||bs[ak]===''||bs[ak]===undefined)return null;return{a:na,b:nb};});}
 function getBracketWinner(bs,p){
   if(isBball(p)){
-    // Basketball bracket: winner by total points (bk_a / bk_b stored directly)
-    const ta=parseInt(bs.bk_a)||0,tb=parseInt(bs.bk_b)||0;
-    if(ta===0&&tb===0)return null;
+    // Basketball bracket: regulation + OT
+    const reg_a=parseInt(bs.bk_a)||0,reg_b=parseInt(bs.bk_b)||0;
+    const ot_a=parseInt(bs.bk_ota)||0,ot_b=parseInt(bs.bk_otb)||0;
+    const ta=reg_a+ot_a,tb=reg_b+ot_b;
+    if(reg_a===0&&reg_b===0)return null;
     return ta>tb?'a':tb>ta?'b':null;
   }
   const maxSets=(p&&p.maxSets)||3;const oneSet=p&&p.oneSetTiebreaker;
