@@ -1889,7 +1889,11 @@ function wizardNotify(event){if(!shouldShowWizard())return;const step=WIZARD_STE
 
 
 // ── ABOUT ──
-function showAbout(){
+function showAboutThenWizard(){
+  // Show About first; CTA button will launch wizard
+  showAbout(true);
+}
+function showAbout(firstRun){
   document.getElementById('modal-inner').innerHTML=`
 <style>
 .ab{max-width:620px}
@@ -2067,7 +2071,14 @@ function showAbout(){
 <div class="modal-actions" style="border-top:1px solid var(--border);padding-top:14px;margin-top:0"><button class="btn btn-primary" onclick="closeModal()">Got it 👊</button></div>`;
   // Widen the modal for About
   const mi=document.getElementById('modal-inner');
-  if(mi)mi.style.maxWidth='660px';
+  if(mi){
+    mi.style.maxWidth='660px';
+    // Swap out the CTA button if this is first-run
+    if(firstRun){
+      const actionsDiv=mi.querySelector('.modal-actions');
+      if(actionsDiv)actionsDiv.innerHTML='<button class="btn" onclick="closeModal()">Skip intro</button><button class="btn btn-primary" onclick="closeModal();setTimeout(startWizard,200)">Let\'s go — show me around →</button>';
+    }
+  }
   showModal();
 }
 
@@ -2092,7 +2103,7 @@ function doImportFromLib(){
 }
 if(state.tournaments&&state.tournaments.length&&!activePool){const t=state.tournaments[0];activeTournament=t.id;if(t.pools&&t.pools.length)activePool=t.pools[0].id;}
 render();
-if(shouldShowWizard()&&!IS_VIEW)setTimeout(startWizard,600);
+if(shouldShowWizard()&&!IS_VIEW)setTimeout(showAboutThenWizard,600);
 initViewerSync();
 </script>
 </body>
