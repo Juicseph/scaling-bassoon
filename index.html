@@ -2581,8 +2581,18 @@ tr.drag-over td{border-top:2px solid var(--accent);}
 </style>
 </head>
 <body>
-<script>const IS_VIEW=location.search.includes('view')||location.hash.includes('view=1');</script>
-<div class="shell">
+<script>
+// Sync mode detection
+const params_=new URLSearchParams(location.search);
+const SYNC_BIN=params_.get('bin')||'';
+const SYNC_KEY=params_.get('k')||'';
+const IS_SHARED_LINK=!!(SYNC_BIN&&SYNC_KEY);
+// IS_VIEW starts true on shared links, but can be unlocked by co-editors entering the PIN
+let IS_VIEW=IS_SHARED_LINK&&!sessionStorage.getItem('tt_editor_unlocked');
+// Editor PIN is stored as hash of api key — simple 4-digit numeric pin set by owner
+let _editorPin=localStorage.getItem('tt_editor_pin')||'';
+</script>
+<div class="shell"><div id="sync-pulse" style="position:fixed;bottom:12px;right:12px;background:var(--green-bg);border:1px solid var(--green-border);color:var(--green);font-size:11px;padding:5px 10px;border-radius:20px;opacity:0;transition:opacity .4s;pointer-events:none;z-index:999;font-family:var(--mono)">↑ Synced</div>
   <div class="sidebar" id="sidebar">
     <div class="sb-head">
       <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
@@ -2635,7 +2645,7 @@ tr.drag-over td{border-top:2px solid var(--accent);}
     </div>
   </div>
   <div class="main">
-    <div id="view-banner" style="display:none" class="view-banner">👁 View-only — live results. <a href="?" style="color:var(--blue);margin-left:6px">Open editor →</a></div>
+    <div id="view-banner" style="display:none" class="view-banner">👁 View-only — live results.</div>
     <div class="main-inner" id="main-content"></div>
   </div>
 </div>
@@ -2678,6 +2688,7 @@ function loadState(){
 function save(){
   if(IS_VIEW)return;
   try{localStorage.setItem('tt_v8',JSON.stringify(state));}catch(e){}
+  schedulePush();
 }
 function tournament(){return(state.tournaments||[]).find(t=>t.id===activeTournament);}
 function pool(){const t=tournament();return t?(t.pools||[]).find(p=>p.id===activePool):null;}
@@ -3502,108 +3513,294 @@ function doBulkAddLib(){
 // ── LIVE SYNC VIA JSONBIN ──
 // Viewers scan QR → page loads → auto-fetches latest data from JSONBin
 // Editor saves → auto-pushes to JsonBin if key is set
-let syncBinId=null;
-function loadSyncConfig(){syncBinId=localStorage.getItem('tt_binid')||null;}
-loadSyncConfig();
+// ── MULTI-EDITOR LIVE SYNC ──
+let syncBinId=SYNC_BIN||localStorage.getItem('tt_binId')||'';
+let _pollTimer=null;
+let _pushDebounce=null;
+let _lastPushHash='';
 
-async function pushToCloud(){
-  const key=localStorage.getItem('tt_apikey');if(!key||!syncBinId)return;
+function stateHash(){
+  // Simple hash to detect changes
+  try{const s=JSON.stringify({scores:state.tournaments?.map(t=>t.pools?.map(p=>({s:p.scores,b:p.bracketScores})))});let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h;}catch(e){return 0;}
+}
+
+// Auto-push whenever save() is called — debounced 800ms
+function schedulePush(){
+  if(!syncBinId||!localStorage.getItem('tt_apikey'))return;
+  if(_pushDebounce)clearTimeout(_pushDebounce);
+  _pushDebounce=setTimeout(()=>pushToBin(syncBinId,false),800);
+}
+
+async function pushToBin(binId,showFeedback=false){
+  if(!binId)return false;
+  const key=localStorage.getItem('tt_apikey');if(!key)return false;
   try{
-    await fetch(`https://api.jsonbin.io/v3/b/${syncBinId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Versioning':'false'},body:JSON.stringify(state)});
-  }catch(e){console.log('Sync push failed',e);}
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Master-Key':key},
+      body:JSON.stringify({state,updated:Date.now(),pin:_editorPin?btoa(_editorPin):'',v:2})
+    });
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    _lastPushHash=stateHash();
+    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='✓ Pushed';el.style.color='var(--green)';setTimeout(()=>{if(el)el.textContent='';},2000);}}
+    return true;
+  }catch(e){
+    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='⚠ Push failed';el.style.color='var(--accent)';}}
+    return false;
+  }
 }
-async function pullFromCloud(){
-  const key=localStorage.getItem('tt_apikey');const binId=syncBinId||new URLSearchParams(location.search).get('bin');
-  if(!key||!binId)return false;
+
+async function pullFromBin(binId,key){
+  if(!binId||!key)return null;
   try{
-    const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':key}});
-    if(!r.ok)return false;
-    const d=await r.json();
-    if(d&&d.record&&d.record.tournaments){state=d.record;save();return true;}
-  }catch(e){}
-  return false;
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':key,'X-Access-Key':key}});
+    if(!res.ok)return null;
+    const data=await res.json();
+    return data.record||null;
+  }catch(e){return null;}
 }
 
-function openSyncSetupModal(){
-  const key=localStorage.getItem('tt_apikey')||'';
-  const binId=syncBinId||'';
-  document.getElementById('modal-inner').innerHTML=`<div class="modal-title">☁️ Live sync setup</div>
-    <div class="modal-sub">Connect a free <b>JSONBin.io</b> account for live QR sharing — no resending needed. Viewers always see the latest scores.<br><br>
-    <b>Steps:</b><br>1. Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--accent)">jsonbin.io</a> and create a free account<br>2. Copy your Master Key from Dashboard → API Keys<br>3. Paste it here and click Save — we'll create a bin for you automatically</div>
-    <div class="modal-row"><label>JSONBin Master Key</label><input type="password" id="sync-key" style="width:100%" value="${esc(key)}" placeholder="$2a$10..."></div>
-    ${binId?`<div style="font-size:11px;color:var(--text3);margin-bottom:8px">Bin ID: <span style="font-family:var(--mono)">${binId}</span></div>`:''}
-    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button>${binId?`<button class="btn btn-danger btn-sm" onclick="disconnectSync()">Disconnect</button>`:''}
-    <button class="btn btn-primary" onclick="setupSync()">Save &amp; Connect</button></div>`;
-  showModal();
-}
-async function setupSync(){
-  const key=(document.getElementById('sync-key').value||'').trim();if(!key){alert('Enter your JSONBin Master Key.');return;}
-  const btn=document.querySelector('#modal-inner .btn-primary');if(btn)btn.textContent='Connecting...';
-  try{
-    // Create a new bin with current state
-    const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'TourneyTrack'},body:JSON.stringify(state)});
-    if(!r.ok){const e=await r.json();alert('Error: '+(e.message||r.status));return;}
-    const d=await r.json();
-    syncBinId=d.metadata.id;
-    localStorage.setItem('tt_apikey',key);
-    localStorage.setItem('tt_binid',syncBinId);
-    closeModal();
-    showShareModal();
-  }catch(e){alert('Connection failed: '+e.message);}
-}
-function disconnectSync(){localStorage.removeItem('tt_apikey');localStorage.removeItem('tt_binid');syncBinId=null;closeModal();}
-
-// Override save to also push to cloud
-const _origSave=save;
-window.save=function(){_origSave();if(syncBinId)pushToCloud();}
-
-// If viewer arrives via ?bin=XXX, auto-pull
-async function initViewerSync(){
-  if(!IS_VIEW)return;
-  const params=new URLSearchParams(location.search);
-  const binId=params.get('bin');const key=params.get('k');
+function startPolling(){
+  if(_pollTimer)clearInterval(_pollTimer);
+  const binId=syncBinId;const key=localStorage.getItem('tt_apikey');
   if(!binId||!key)return;
-  // Store temporarily for pull
-  localStorage.setItem('tt_apikey',key);
-  syncBinId=binId;
-  const pulled=await pullFromCloud();
-  if(pulled){render();startLivePolling();}
-}
-function startLivePolling(){
-  // Poll every 15 seconds for view mode
-  if(!IS_VIEW)return;
-  setInterval(async()=>{const pulled=await pullFromCloud();if(pulled)render();},15000);
+  _pollTimer=setInterval(async()=>{
+    const rec=await pullFromBin(binId,key);
+    if(!rec||!rec.state)return;
+    // Only update if remote is newer and different from our last push
+    if(rec.updated&&rec.updated>Date.now()-60000){
+      const remoteHash=JSON.stringify(rec.state.tournaments?.map(t=>t.pools?.map(p=>p.scores)));
+      const localHash=JSON.stringify(state.tournaments?.map(t=>t.pools?.map(p=>p.scores)));
+      if(remoteHash!==localHash){
+        state=rec.state;
+        save();render();
+        // Show subtle "updated" indicator
+        showSyncPulse();
+      }
+    }
+  },IS_VIEW?15000:30000); // viewers poll every 15s, editors every 30s
 }
 
-// ── UPDATE showShareModal to use live sync if available ──
+function showSyncPulse(){
+  const el=document.getElementById('sync-pulse');
+  if(el){el.style.opacity='1';setTimeout(()=>{if(el)el.style.opacity='0';},2000);}
+}
+
+// ── SYNC SETUP MODAL ──
+function openSyncSetupModal(){
+  const hasKey=!!localStorage.getItem('tt_apikey');
+  const hasBin=!!syncBinId;
+  const pin=_editorPin||'';
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="modal-title">☁️ Live Sync Setup</div>
+    <div class="modal-sub">Set up live sync so scores update across all devices automatically — no resending QR codes.</div>
+    <div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12px;line-height:1.7;color:var(--blue)">
+      <b>How to get your free API key:</b><br>
+      1. Go to <b>jsonbin.io</b> → Sign up free<br>
+      2. Dashboard → API Keys → Create Master Key<br>
+      3. Paste it below
+    </div>
+    <div class="modal-row"><label>JSONbin Master Key</label>
+      <input type="text" id="sync-api-key" style="width:100%;font-family:var(--mono);font-size:11px" placeholder="$2a$10$..." value="${localStorage.getItem('tt_apikey')||''}">
+    </div>
+    <div class="modal-row"><label>Editor PIN <span style="color:var(--text3);font-weight:400">(4-digit — share with co-editors so they can enter scores)</span></label>
+      <input type="text" id="sync-pin" maxlength="4" style="width:90px;font-size:18px;font-family:var(--mono);letter-spacing:.2em;text-align:center" placeholder="1234" value="${pin}">
+    </div>
+    ${hasBin?`<div style="font-size:11px;color:var(--green);background:var(--green-bg);border:1px solid var(--green-border);border-radius:6px;padding:8px 11px;margin-bottom:8px">✓ Sync active · Bin: <span style="font-family:var(--mono)">${syncBinId}</span></div>`:''}
+    <div id="sync-setup-msg" style="font-size:12px;min-height:18px;margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      ${hasBin?`<button class="btn" onclick="syncBinId='';localStorage.removeItem('tt_binId');document.getElementById('sync-setup-msg').textContent='Sync cleared.';setTimeout(closeModal,1200)">Disconnect</button>`:''}
+      <button class="btn btn-primary" onclick="doSyncSetup()">
+        ${hasBin?'Update settings':'Connect &amp; create link'}
+      </button>
+    </div>`;
+  showModal();
+  setTimeout(()=>document.getElementById('sync-api-key')?.focus(),50);
+}
+
+async function doSyncSetup(){
+  const key=(document.getElementById('sync-api-key')?.value||'').trim();
+  const pin=(document.getElementById('sync-pin')?.value||'').trim();
+  const msg=document.getElementById('sync-setup-msg');
+  if(!key){msg.textContent='⚠ Paste your JSONbin Master Key first.';msg.style.color='var(--accent)';return;}
+  if(pin&&!/^\d{4}$/.test(pin)){msg.textContent='⚠ PIN must be exactly 4 digits.';msg.style.color='var(--accent)';return;}
+  msg.textContent='Creating sync bin...';msg.style.color='var(--text3)';
+  try{
+    _editorPin=pin;
+    localStorage.setItem('tt_apikey',key);
+    localStorage.setItem('tt_editor_pin',pin);
+    let binId=syncBinId;
+    if(!binId){
+      // Create new bin
+      const res=await fetch('https://api.jsonbin.io/v3/b',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-Master-Key':key,'X-Bin-Name':'TourneyTrack-'+Date.now(),'X-Bin-Private':'false'},
+        body:JSON.stringify({state,updated:Date.now(),pin:pin?btoa(pin):'',v:2})
+      });
+      if(!res.ok)throw new Error('HTTP '+res.status+' — check your API key');
+      const data=await res.json();
+      binId=data.metadata.id;
+      syncBinId=binId;
+      localStorage.setItem('tt_binId',binId);
+    }else{
+      // Update existing
+      await pushToBin(binId,false);
+    }
+    msg.textContent='✓ Sync active!';msg.style.color='var(--green)';
+    startPolling();
+    // Re-render share button in sidebar to show indicator
+    updateSyncIndicator();
+    setTimeout(()=>{closeModal();showShareModal();},1000);
+  }catch(e){
+    msg.textContent='⚠ '+e.message;msg.style.color='var(--accent)';
+  }
+}
+
+function updateSyncIndicator(){
+  const btn=document.querySelector('.sb-foot-btn[onclick="showShareModal()"]');
+  if(btn)btn.innerHTML=syncBinId?'🔗 Share / QR <span style="color:var(--green);font-size:9px">●LIVE</span>':'🔗 Share / QR code';
+}
+
+// ── SHARE MODAL ──
 function showShareModal(){
   const hasBin=!!syncBinId;
   const key=localStorage.getItem('tt_apikey')||'';
+  const pin=_editorPin||'';
   if(hasBin&&key){
-    // Live QR — encode bin+key into URL, no data needed
-    const viewUrl=`${location.href.split('?')[0]}?bin=${syncBinId}&k=${encodeURIComponent(key)}&view=1`;
+    const viewUrl=`${location.href.split('?')[0].split('#')[0]}?bin=${syncBinId}&k=${encodeURIComponent(key)}`;
+    const editorUrl=viewUrl; // Same URL — PIN unlocks editing
+    const readOnlyUrl=viewUrl+'&view=1';
     const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(viewUrl)}`;
-    document.getElementById('modal-inner').innerHTML=`<div class="modal-title">🔗 Live share — always up to date</div>
-      <div class="modal-sub">This QR always shows the latest scores. <b>No need to resend it.</b> Viewers refresh every 15 seconds automatically.</div>
-      <div style="display:flex;justify-content:center;margin:12px 0"><img src="${qrUrl}" style="width:200px;height:200px;border-radius:8px;border:1px solid var(--border)" alt="QR"></div>
-      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:7px;padding:9px 12px;font-size:12px;color:var(--green);margin-bottom:10px">☁️ Live sync active — scores push to cloud automatically when saved.</div>
-      <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn" onclick="openSyncSetupModal()">⚙️ Sync settings</button><button class="btn btn-primary" id="copy-share-btn" onclick="doShareCopy('${viewUrl.replace(/'/g,'\\\'').replace(/"/g,'&quot;')}')">Copy link</button></div>`;
-    window._shareUrl=viewUrl;showModal();
+    window._shareUrl=viewUrl;
+    document.getElementById('modal-inner').innerHTML=`
+      <div class="modal-title">📡 Live Sync Active</div>
+      <div style="display:flex;justify-content:center;margin:10px 0 14px">
+        <img src="${qrUrl}" style="width:200px;height:200px;border-radius:10px;border:1px solid var(--border)" alt="QR">
+      </div>
+      <div style="background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--green);margin-bottom:10px">
+        ✓ <b>Live link</b> — scores update automatically. No need to resend.
+      </div>
+      ${pin?`<div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:10px 13px;font-size:12px;margin-bottom:10px">
+        <b>🔑 Editor PIN: <span style="font-family:var(--mono);font-size:16px;letter-spacing:.2em">${pin}</span></b><br>
+        <span style="color:var(--text3)">Share this PIN with co-editors so they can enter scores from their phone.</span>
+      </div>`:`<div style="background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--text2);margin-bottom:10px">
+        💡 No editor PIN set. Co-editors can only view. <button class="btn btn-sm" onclick="closeModal();openSyncSetupModal()" style="margin-left:6px">Set PIN</button>
+      </div>`}
+      <div style="display:flex;gap:7px;margin-bottom:4px">
+        <button class="btn" style="flex:1" onclick="doShareCopy('${viewUrl.replace(/'/g,"\'")}')">📋 Copy editor link</button>
+        <button class="btn" style="flex:1" onclick="doShareCopy('${readOnlyUrl.replace(/'/g,"\'")}')">👁 Copy view-only</button>
+      </div>
+      <div id="sync-status" style="font-size:11px;min-height:16px;text-align:center;margin:4px 0"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Close</button>
+        <button class="btn" onclick="closeModal();openSyncSetupModal()">⚙️ Settings</button>
+        <button class="btn btn-primary" onclick="pushToBin('${syncBinId}',true)">⬆ Push now</button>
+      </div>`;
+    showModal();
   }else{
-    // Fallback: data-in-URL
+    // No sync — prompt to set up
     try{
       const b64=btoa(unescape(encodeURIComponent(JSON.stringify(state))));
       const url=location.href.split('#')[0]+'#data='+encodeURIComponent(b64)+'&view=1';
-      const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url.slice(0,2000))}`;
-      document.getElementById('modal-inner').innerHTML=`<div class="modal-title">🔗 Share results</div>
-        <div class="modal-sub">Scan to view results now. <b>⚠ Snapshot only</b> — you need to reshare after scores change.<br><br><button class="btn btn-primary btn-sm" onclick="closeModal();openSyncSetupModal()">☁️ Set up live sync (no resending)</button></div>
-        <div style="display:flex;justify-content:center;margin:12px 0"><img src="${qrUrl}" style="width:200px;height:200px;border-radius:8px;border:1px solid var(--border)" alt="QR" onerror="this.style.display='none'"></div>
-        <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn btn-primary" id="copy-share-btn" onclick="doShareCopy()">Copy link</button></div>`;
-      window._shareUrl=url;showModal();
+      const qrUrl=`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url.slice(0,2000))}`;
+      window._shareUrl=url;
+      document.getElementById('modal-inner').innerHTML=`
+        <div class="modal-title">🔗 Share Results</div>
+        <div style="background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:8px;padding:11px 14px;margin-bottom:14px;font-size:12px;line-height:1.6">
+          <b>⚡ Want live sync?</b> Set up a free JSONbin account so scores update across all devices automatically — no resending QR codes, and co-editors can enter scores from their phones.
+        </div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="closeModal();openSyncSetupModal()">☁️ Set up live sync (recommended)</button>
+        <div style="text-align:center;color:var(--text3);font-size:11px;margin-bottom:8px">— or share a one-time snapshot —</div>
+        <div style="display:flex;justify-content:center;margin:8px 0 10px">
+          <img src="${qrUrl}" style="width:160px;height:160px;border-radius:8px;border:1px solid var(--border)" alt="QR" onerror="this.style.display='none'">
+        </div>
+        <div style="font-size:11px;color:var(--gold);text-align:center;margin-bottom:8px">⚠ Snapshot only — reshare after score changes</div>
+        <div class="modal-actions"><button class="btn" onclick="closeModal()">Close</button><button class="btn" id="copy-share-btn" onclick="doShareCopy()">Copy snapshot link</button></div>`;
+      showModal();
     }catch(e){alert('Could not generate share link.');}
   }
 }
-function doShareCopy(url){const u=url||window._shareUrl||'';try{navigator.clipboard.writeText(u).then(()=>{const btn=document.getElementById('copy-share-btn');if(btn){btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy link',1500);}}).catch(()=>prompt('Copy this link:',u));}catch(e){prompt('Copy this link:',u);}}
+function doShareCopy(url){const u=url||window._shareUrl||'';try{navigator.clipboard.writeText(u).then(()=>{const btn=document.getElementById('copy-share-btn');if(btn){btn.textContent='✓ Copied!';setTimeout(()=>btn.textContent='Copy link',1500);}}).catch(()=>prompt('Copy this link:',u));}catch(e){prompt('Copy this link:',u);}}
+
+// ── CO-EDITOR PIN UNLOCK ──
+function showEditorUnlockModal(){
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="modal-title">🔑 Enter Editor PIN</div>
+    <div class="modal-sub">Ask the tournament director for the 4-digit PIN to unlock score entry on this device.</div>
+    <div style="text-align:center;margin:16px 0">
+      <input type="text" id="pin-input" maxlength="4" inputmode="numeric" pattern="\d{4}"
+        style="width:140px;font-size:32px;font-family:var(--mono);letter-spacing:.25em;text-align:center;border:2px solid var(--border);border-radius:8px;padding:8px"
+        placeholder="••••" onkeydown="if(event.key==='Enter')doUnlockEditor()">
+    </div>
+    <div id="pin-error" style="color:var(--accent);font-size:12px;text-align:center;min-height:18px"></div>
+    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doUnlockEditor()">Unlock editing</button></div>`;
+  showModal();
+  setTimeout(()=>document.getElementById('pin-input')?.focus(),60);
+}
+
+async function doUnlockEditor(){
+  const entered=(document.getElementById('pin-input')?.value||'').trim();
+  const errEl=document.getElementById('pin-error');
+  if(!/^\d{4}$/.test(entered)){if(errEl)errEl.textContent='Enter a 4-digit PIN.';return;}
+  // Fetch the bin to verify
+  const key=SYNC_KEY||localStorage.getItem('tt_apikey');
+  if(!key){if(errEl)errEl.textContent='No sync key available.';return;}
+  if(errEl)errEl.textContent='Checking...';
+  const rec=await pullFromBin(SYNC_BIN,key);
+  if(!rec){if(errEl)errEl.textContent='Could not reach sync server.';return;}
+  // Verify PIN
+  let storedPin='';
+  try{storedPin=rec.pin?atob(rec.pin):'';}catch(e){}
+  if(!storedPin){if(errEl)errEl.textContent='No PIN set on this tournament. Contact the director.';return;}
+  if(entered!==storedPin){if(errEl)errEl.textContent='Incorrect PIN. Try again.';return;}
+  // Unlock!
+  sessionStorage.setItem('tt_editor_unlocked','1');
+  localStorage.setItem('tt_apikey',key);
+  syncBinId=SYNC_BIN;
+  IS_VIEW=false;
+  _editorPin=entered;
+  // Load latest state from bin
+  if(rec.state){state=rec.state;save();}
+  closeModal();
+  // Re-init as editor
+  document.getElementById('view-banner')?.remove();
+  document.getElementById('add-pool-btn').style.display='';
+  document.getElementById('sb-foot').style.display='';
+  startPolling();
+  render();
+}
+
+// ── VIEW BANNER update — add unlock button ──
+function showViewBanner(){
+  const banner=document.getElementById('view-banner');
+  if(!banner)return;
+  if(IS_SHARED_LINK&&IS_VIEW){
+    banner.style.display='flex';
+    banner.innerHTML=`👁 <b>View-only</b> — live scores. Co-editors: <button class="btn btn-sm btn-primary" style="margin-left:8px" onclick="showEditorUnlockModal()">🔑 Enter PIN to edit scores</button>`;
+  }
+}
+
+// ── INIT VIEWER/EDITOR SYNC ──
+async function initViewerSync(){
+  if(!IS_SHARED_LINK)return;
+  const key=SYNC_KEY;
+  localStorage.setItem('tt_apikey',key);
+  syncBinId=SYNC_BIN;
+  const rec=await pullFromBin(SYNC_BIN,key);
+  if(!rec||!rec.state)return;
+  state=rec.state;
+  if(!IS_VIEW){
+    // Co-editor who unlocked
+    _editorPin='';
+    try{_editorPin=rec.pin?atob(rec.pin):'';}catch(e){}
+  }
+  activeTournament=(state.tournaments||[]).length?state.tournaments[0].id:null;
+  if(state.tournaments?.length){const t=state.tournaments[0];if(t.pools?.length)activePool=t.pools[0].id;}
+  save();render();
+  startPolling();
+  showViewBanner();
+}
 
 // ── MODALS ──
 function openAddMatchModal(){
@@ -3907,6 +4104,7 @@ function doImportFromLib(){
 }
 if(state.tournaments&&state.tournaments.length&&!activePool){const t=state.tournaments[0];activeTournament=t.id;if(t.pools&&t.pools.length)activePool=t.pools[0].id;}
 render();
+updateSyncIndicator();
 if(shouldShowWizard()&&!IS_VIEW)setTimeout(showAboutThenWizard,600);
 initViewerSync();
 </script>
