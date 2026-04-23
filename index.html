@@ -3579,27 +3579,39 @@ function startPolling(){
   const binId=syncBinId;
   const key=localStorage.getItem('tt_apikey')||'';
   if(!binId)return;
-  const interval=IS_VIEW?12000:20000; // 12s for viewers, 20s for editors
+  const interval=IS_VIEW?12000:20000;
   _pollTimer=setInterval(async()=>{
     const rec=await pullFromBin(binId,key);
     if(!rec||!rec.state)return;
-    // Compare remote vs local update timestamps
     const remoteTs=rec.updated||0;
-    if(remoteTs<=_lastRemoteTs)return; // already have this version
+    // Skip if we've already seen this version
+    if(remoteTs<=_lastRemoteTs)return;
+    // Skip if this is our own recent push (within 5s)
+    if(remoteTs<=_lastLocalPushTs+5000&&_lastLocalPushTs>0){
+      _lastRemoteTs=remoteTs; // still update so we don't keep re-checking
+      return;
+    }
+    // A genuinely newer version from another device — apply it
     _lastRemoteTs=remoteTs;
-    // Skip if we pushed this ourselves (within 3s tolerance)
-    if(remoteTs<_lastLocalPushTs+3000&&_lastLocalPushTs>0)return;
-    // Apply remote state
     state=rec.state;
     try{localStorage.setItem('tt_v8',JSON.stringify(state));}catch(e){}
     render();
-    showSyncPulse();
+    showSyncReceived();
   },interval);
 }
 
 function showSyncPulse(){
   const el=document.getElementById('sync-pulse');
-  if(el){el.style.opacity='1';setTimeout(()=>{if(el)el.style.opacity='0';},2000);}
+  if(el){el.textContent='↑ Synced';el.style.opacity='1';setTimeout(()=>{if(el)el.style.opacity='0';},2500);}
+  // Update last-synced time in view banner if visible
+  const ts=document.getElementById('sync-ts');
+  if(ts)ts.textContent='Last updated: '+new Date().toLocaleTimeString();
+}
+function showSyncReceived(){
+  const el=document.getElementById('sync-pulse');
+  if(el){el.textContent='↓ Updated';el.style.opacity='1';setTimeout(()=>{if(el)el.style.opacity='0';},2500);}
+  const ts=document.getElementById('sync-ts');
+  if(ts)ts.textContent='Last updated: '+new Date().toLocaleTimeString();
 }
 
 // ── SYNC SETUP MODAL ──
@@ -3665,9 +3677,8 @@ async function doSyncSetup(){
     }
     msg.textContent='✓ Sync active!';msg.style.color='var(--green)';
     startPolling();
-    // Re-render share button in sidebar to show indicator
     updateSyncIndicator();
-    setTimeout(()=>{closeModal();showShareModal();},1000);
+    setTimeout(()=>{closeModal();showShareModal();},1200);
   }catch(e){
     msg.textContent='⚠ '+e.message;msg.style.color='var(--accent)';
   }
@@ -3793,8 +3804,29 @@ function showViewBanner(){
   if(!banner)return;
   if(IS_SHARED_LINK&&IS_VIEW){
     banner.style.display='flex';
-    banner.innerHTML=`👁 <b>View-only</b> — live scores. Co-editors: <button class="btn btn-sm btn-primary" style="margin-left:8px" onclick="showEditorUnlockModal()">🔑 Enter PIN to edit scores</button>`;
+    banner.style.flexWrap='wrap';
+    banner.style.gap='6px';
+    banner.innerHTML=`<span>👁 <b>Live view</b> — auto-refreshes every 12 seconds.</span><span id="sync-ts" style="color:var(--text3);font-size:11px"></span><button class="btn btn-sm" onclick="manualRefresh()" style="margin-left:4px">↻ Refresh now</button><button class="btn btn-sm btn-primary" style="margin-left:4px" onclick="showEditorUnlockModal()">🔑 Enter PIN to edit</button>`;
+  }else if(syncBinId&&!IS_SHARED_LINK){
+    // Owner's page — show sync status
+    banner.style.display='flex';
+    banner.innerHTML=`<span style="color:var(--green)">☁️ <b>Live sync on</b> — phone edits appear here automatically.</span><span id="sync-ts" style="color:var(--text3);font-size:11px;margin-left:8px"></span><button class="btn btn-sm" onclick="manualRefresh()" style="margin-left:8px">↻ Pull now</button>`;
   }
+}
+async function manualRefresh(){
+  const key=localStorage.getItem('tt_apikey')||SYNC_KEY;
+  if(!syncBinId||!key)return;
+  const btn=event?.target;if(btn){btn.textContent='...';btn.disabled=true;}
+  const rec=await pullFromBin(syncBinId,key);
+  if(btn){btn.textContent='↻ Refresh now';btn.disabled=false;}
+  if(!rec||!rec.state)return;
+  const remoteTs=rec.updated||0;
+  _lastRemoteTs=remoteTs;
+  state=rec.state;
+  try{localStorage.setItem('tt_v8',JSON.stringify(state));}catch(e){}
+  render();
+  showSyncReceived();
+  showViewBanner();
 }
 
 // ── INIT VIEWER/EDITOR SYNC ──
@@ -4122,6 +4154,8 @@ function doImportFromLib(){
 if(state.tournaments&&state.tournaments.length&&!activePool){const t=state.tournaments[0];activeTournament=t.id;if(t.pools&&t.pools.length)activePool=t.pools[0].id;}
 render();
 updateSyncIndicator();
+// Start polling even for the owner so edits from phones show up
+if(syncBinId&&localStorage.getItem('tt_apikey')){startPolling();showViewBanner();}
 if(shouldShowWizard()&&!IS_VIEW)setTimeout(showAboutThenWizard,600);
 initViewerSync();
 </script>
