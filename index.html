@@ -1075,13 +1075,62 @@ function getStats(p){
   return stats;
 }
 function headToHead(p,a,b){const m=p.schedule.find(m=>(m.a===a&&m.b===b)||(m.a===b&&m.b===a));if(!m)return 0;const idx=p.schedule.indexOf(m),sc=p.scores[idx]||{};let wa=0,wb=0;getSetResults(sc).forEach(r=>{if(!r)return;if(m.a===a){if(r.a>r.b)wa++;else if(r.b>r.a)wb++;}else{if(r.b>r.a)wa++;else if(r.a>r.b)wb++;}});return wa>wb?-1:wb>wa?1:0;}
-function rankTeams(p){const stats=getStats(p);const tb=p.tiebreakers||['sets','headtohead','pointdiff'];return Object.entries(stats).map(([id,s])=>({id:Number(id),...s,pm:s.pf-s.pa})).sort((a,b)=>{for(const t of tb){if(t==='sets'&&b.sw!==a.sw)return b.sw-a.sw;if(t==='matches'&&b.mw!==a.mw)return b.mw-a.mw;if(t==='pointdiff'&&b.pm!==a.pm)return b.pm-a.pm;if(t==='headtohead'){const h=headToHead(p,a.id,b.id);if(h!==0)return h;}}return 0;});}
+function rankTeams(p){
+  const stats=getStats(p);
+  const bball=isBball(p);
+  const defaultTB=bball?['matches','headtohead','pointdiff']:['sets','headtohead','pointdiff'];
+  const tb=p.tiebreakers||defaultTB;
+  return Object.entries(stats).map(([id,s])=>({
+    id:Number(id),...s,
+    pm:s.pf-s.pa,
+    pr:s.pa>0?Math.round((s.pf/s.pa)*10000)/10000:s.pf>0?9999:1
+  })).sort((a,b)=>{
+    // Always sort by match wins first for basketball, sets first for volleyball
+    if(bball&&b.mw!==a.mw)return b.mw-a.mw;
+    else if(!bball&&b.sw!==a.sw)return b.sw-a.sw;
+    for(const t of tb){
+      if(t==='sets'&&b.sw!==a.sw)return b.sw-a.sw;
+      if(t==='matches'&&b.mw!==a.mw)return b.mw-a.mw;
+      if(t==='pointdiff'&&b.pm!==a.pm)return b.pm-a.pm;
+      if(t==='pointratio'&&b.pr!==a.pr)return b.pr-a.pr;
+      if(t==='headtohead'){const h=headToHead(p,a.id,b.id);if(h!==0)return h;}
+    }
+    return 0;
+  });
+}
 
 // ── TIE SECTION ──
-function detectTies(p,ranked){const tb=p.tiebreakers||['sets','headtohead','pointdiff'];const ties=[];let i=0;while(i<ranked.length){let j=i+1;while(j<ranked.length){const a=ranked[i],b=ranked[j];let tied=true;for(const t of tb){if(t==='sets'&&a.sw!==b.sw){tied=false;break;}if(t==='matches'&&a.mw!==b.mw){tied=false;break;}if(t==='pointdiff'&&a.pm!==b.pm){tied=false;break;}if(t==='headtohead'){const h=headToHead(p,a.id,b.id);if(h!==0){tied=false;break;}}}if(tied)j++;else break;}if(j-i>1)ties.push(ranked.slice(i,j));i=j;}return ties;}
+function detectTies(p,ranked){
+  const bball=isBball(p);
+  const defaultTB=bball?['matches','headtohead','pointdiff']:['sets','headtohead','pointdiff'];
+  const tb=p.tiebreakers||defaultTB;
+  const ties=[];let i=0;
+  while(i<ranked.length){
+    let j=i+1;
+    while(j<ranked.length){
+      const a=ranked[i],b=ranked[j];let tied=true;
+      // Primary sort criterion
+      if(bball&&a.mw!==b.mw){tied=false;}
+      else if(!bball&&a.sw!==b.sw){tied=false;}
+      if(tied){
+        for(const t of tb){
+          if(t==='sets'&&a.sw!==b.sw){tied=false;break;}
+          if(t==='matches'&&a.mw!==b.mw){tied=false;break;}
+          if(t==='pointdiff'&&a.pm!==b.pm){tied=false;break;}
+          if(t==='pointratio'&&a.pr!==b.pr){tied=false;break;}
+          if(t==='headtohead'){const h=headToHead(p,a.id,b.id);if(h!==0){tied=false;break;}}
+        }
+      }
+      if(tied)j++;else break;
+    }
+    if(j-i>1)ties.push(ranked.slice(i,j));
+    i=j;
+  }
+  return ties;
+}
 function renderTieSection(p,ranked){
   const ties=detectTies(p,ranked);if(!ties.length)return'';
-  const tb=p.tiebreakers||['sets','headtohead','pointdiff'];const tbL={sets:'Sets won',matches:'Match wins',headtohead:'Head-to-head',pointdiff:'Point diff'};
+  const tb=p.tiebreakers||['sets','headtohead','pointdiff'];const tbL={sets:'Sets won',matches:'Match wins',headtohead:'Head-to-head',pointdiff:'Point diff',pointratio:'Pt Ratio'};
   let html='<div class="tie-card"><div style="display:flex;align-items:center;gap:7px;margin-bottom:9px"><span style="font-size:14px">⚠️</span><span style="font-size:13px;font-weight:600;color:var(--gold)">Tie detected — tiebreaker breakdown</span></div>';
   ties.forEach(group=>{
     html+=`<div class="tie-group"><div class="tie-teams">${group.map(t=>esc(p.teams[t.id]||'Team '+t.id)).join(' · ')}</div><div class="tie-breakdown">`;
@@ -1091,6 +1140,7 @@ function renderTieSection(p,ranked){
       if(t==='matches'){const vals=group.map(x=>`${esc(p.teams[x.id]||'T'+x.id)}: ${x.mw}W`).join(', ');const broke=[...new Set(group.map(x=>x.mw))].length>1;html+=`<b>Match wins:</b> ${vals}<br>`;tbResults.push({broke,label:'match wins',winner:broke?group.slice().sort((a,b)=>b.mw-a.mw)[0]:null});}
       if(t==='headtohead'&&group.length===2){const a=group[0],b=group[1],h=headToHead(p,a.id,b.id);html+=`<b>Head-to-head:</b> `;if(h<0){html+=`${esc(p.teams[a.id])} beat ${esc(p.teams[b.id])}<br>`;tbResults.push({broke:true,label:'head-to-head',winner:a});}else if(h>0){html+=`${esc(p.teams[b.id])} beat ${esc(p.teams[a.id])}<br>`;tbResults.push({broke:true,label:'head-to-head',winner:b});}else{html+=`Split / not yet played<br>`;tbResults.push({broke:false,label:'head-to-head',winner:null});}}
       if(t==='pointdiff'){const vals=group.map(x=>`${esc(p.teams[x.id]||'T'+x.id)}: ${x.pm>=0?'+':''}${x.pm}`).join(', ');const broke=[...new Set(group.map(x=>x.pm))].length>1;html+=`<b>Point diff:</b> ${vals}<br>`;tbResults.push({broke,label:'point differential',winner:broke?group.slice().sort((a,b)=>b.pm-a.pm)[0]:null});}
+      if(t==='pointratio'){const vals=group.map(x=>`${esc(p.teams[x.id]||'T'+x.id)}: ${x.pr.toFixed(4)}`).join(', ');const broke=[...new Set(group.map(x=>x.pr))].length>1;html+=`<b>Point ratio (Pts For ÷ Pts Against):</b> ${vals}<br>`;tbResults.push({broke,label:'point ratio',winner:broke?group.slice().sort((a,b)=>b.pr-a.pr)[0]:null});}
     });
     html+='</div>';
     const firstBreaker=tbResults.find(r=>r.broke);
@@ -1348,17 +1398,19 @@ function renderStandings(p){
   if(!p.schedule.length)return`<div style="text-align:center;padding:48px;color:var(--text3)">Generate a schedule first.</div>`;
   const bball=isBball(p);
   const ranked=rankTeams(p);const tb=p.tiebreakers||['sets','headtohead','pointdiff'];
-  const tbL={sets:bball?'Wins':'Sets W',matches:'Game W',headtohead:'H2H',pointdiff:'+/−'};
+  const tbL={sets:bball?'Wins':'Sets W',matches:bball?'W':'Game W',headtohead:'H2H',pointdiff:'+/−',pointratio:'Pt Ratio'};
   let rows='';
   ranked.forEach((t,i)=>{
     const pm=t.pm;const pmCell=pm>0?`<span class="pos">+${pm}</span>`:pm<0?`<span class="neg">${pm}</span>`:`<span class="zer">0</span>`;
     const name=p.teams[t.id]||'Team '+t.id;const seed=p.seeds&&p.seeds[t.id]?`<span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:3px">#${p.seeds[t.id]}</span>`:'';
     const rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
-    rows+=`<tr class="${rc}"><td><div class="rank-cell"><div class="rank-num">${i+1}</div>${esc(name)}${seed}</div></td><td class="c mw">${t.mw}</td><td class="c ml">${t.ml}</td>${bball?'':`<td class="c mono">${t.sw}</td><td class="c mono">${t.sl}</td>`}<td class="c mono">${t.pf}</td><td class="c mono">${t.pa}</td><td class="c">${pmCell}</td>${p.includeByes?`<td class="c" style="color:var(--gold);font-family:var(--mono)">${t.byes||0}</td>`:''}<td class="c" style="font-weight:700;font-family:var(--mono)">${i+1}</td></tr>`;
+    const prVal=t.pr?t.pr.toFixed(3):'—';
+    const prCell=t.pr>=1?`<span class="pos">${prVal}</span>`:t.pr<1?`<span class="neg">${prVal}</span>`:`<span class="zer">${prVal}</span>`;
+    rows+=`<tr class="${rc}"><td><div class="rank-cell"><div class="rank-num">${i+1}</div>${esc(name)}${seed}</div></td><td class="c mw">${t.mw}</td><td class="c ml">${t.ml}</td>${bball?'':`<td class="c mono">${t.sw}</td><td class="c mono">${t.sl}</td>`}<td class="c mono">${t.pf}</td><td class="c mono">${t.pa}</td><td class="c">${pmCell}</td><td class="c">${prCell}</td>${p.includeByes?`<td class="c" style="color:var(--gold);font-family:var(--mono)">${t.byes||0}</td>`:''}<td class="c" style="font-weight:700;font-family:var(--mono)">${i+1}</td></tr>`;
   });
   const note=p.oneSetTiebreaker&&!bball?`<div style="margin-bottom:9px;padding:6px 10px;background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple)">⚡ One-set tiebreaker mode</div>`:'';
   const bballNote=bball?`<div style="margin-bottom:9px;padding:6px 10px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;font-size:11px;color:var(--blue)">🏀 Basketball mode · W/L by total points scored</div>`:'';
-  return note+bballNote+renderTieSection(p,ranked)+`<div class="card tbl-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px"><div class="card-title" style="margin:0">Standings — ${esc(p.name)}</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">TB: ${tb.map(t=>tbL[t]||t).join(' → ')}</span></div><table><thead><tr><th>Team</th><th class="c">${bball?'W':'Match W'}</th><th class="c">${bball?'L':'Match L'}</th>${bball?'':`<th class="c">Sets W</th><th class="c">Sets L</th>`}<th class="c">Pts For</th><th class="c">Pts Against</th><th class="c">+/−</th>${p.includeByes?'<th class="c">Byes</th>':''}<th class="c">Rank</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return note+bballNote+renderTieSection(p,ranked)+`<div class="card tbl-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px"><div class="card-title" style="margin:0">Standings — ${esc(p.name)}</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">TB: ${tb.map(t=>tbL[t]||t).join(' → ')}</span></div><table><thead><tr><th>Team</th><th class="c">${bball?'W':'Match W'}</th><th class="c">${bball?'L':'Match L'}</th>${bball?'':`<th class="c">Sets W</th><th class="c">Sets L</th>`}<th class="c">Pts For</th><th class="c">Pts Against</th><th class="c">+/−</th><th class="c" title="Points Scored ÷ Points Allowed">Pt Ratio</th>${p.includeByes?'<th class="c">Byes</th>':''}<th class="c">Rank</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ── TEAM HISTORY ──
@@ -1847,11 +1899,24 @@ function doResetAll(){const val=(document.getElementById('reset-confirm').value|
 function openNewTModal(){document.getElementById('modal-inner').innerHTML=`<div class="modal-title">New tournament</div><div class="modal-row"><label>Name</label><input type="text" id="nt-name" style="width:100%" placeholder="Spring Invitational 2025"></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doCreateT()">Create</button></div>`;showModal();setTimeout(()=>document.getElementById('nt-name').focus(),50);}
 function doCreateT(){const name=(document.getElementById('nt-name').value||'').trim()||'New Tournament';const t={id:uid(),name,pools:[]};if(!state.tournaments)state.tournaments=[];state.tournaments.push(t);activeTournament=t.id;activePool=null;save();closeModal();render();wizardNotify('tournament-created');}
 function openNewPoolModal(){const t=tournament();if(!t){alert('Create a tournament first.');return;}if((t.pools||[]).length>=10){alert('Max 10 pools.');return;}const divOpts=state.divisions.map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('');document.getElementById('modal-inner').innerHTML=`<div class="modal-title">New pool</div><div class="modal-sub">Add a pool to <b>${esc(t.name)}</b>.</div><div class="modal-row"><label>Pool name</label><input type="text" id="np-name" style="width:100%" placeholder="Pool A, Big 10..."></div><div class="modal-row"><label>Teams</label><input type="number" id="np-teams" value="7" min="3" max="20" style="width:76px"></div>${divOpts?`<div class="modal-row"><label>Division</label><select id="np-div" style="width:100%"><option value="">— None —</option>${divOpts}</select></div>`:''}<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doCreatePool()">Create</button></div>`;showModal();setTimeout(()=>document.getElementById('np-name').focus(),50);}
-function doCreatePool(){const t=tournament();if(!t)return;const name=(document.getElementById('np-name').value||'').trim()||'New Pool';const numTeams=Math.max(3,Math.min(20,parseInt(document.getElementById('np-teams').value)||7));const divEl=document.getElementById('np-div');const divId=divEl?divEl.value:'';const teams={};for(let i=1;i<=20;i++)teams[i]='Team '+i;const p={id:uid(),name,numTeams,teams,seeds:{},days:[{name:'SAT PM',location:''},{name:'SUN',location:''}],courtStart:8,numCourts:3,schedule:[],scores:{},bracketScores:{},tiebreakers:['sets','headtohead','pointdiff'],oneSetTiebreaker:false,maxSets:3,matchesPerTeam:0,includeByes:false,divId};if(!t.pools)t.pools=[];t.pools.push(p);activePool=p.id;activeTab='setup';save();closeModal();render();wizardNotify('pool-created');}
+function doCreatePool(){const t=tournament();if(!t)return;const name=(document.getElementById('np-name').value||'').trim()||'New Pool';const numTeams=Math.max(3,Math.min(20,parseInt(document.getElementById('np-teams').value)||7));const divEl=document.getElementById('np-div');const divId=divEl?divEl.value:'';const teams={};for(let i=1;i<=20;i++)teams[i]='Team '+i;const p={id:uid(),name,numTeams,teams,seeds:{},days:[{name:'SAT PM',location:''},{name:'SUN',location:''}],courtStart:8,numCourts:3,schedule:[],scores:{},bracketScores:{},tiebreakers:['sets','headtohead','pointdiff'],oneSetTiebreaker:false,maxSets:3,sport:'volleyball',matchesPerTeam:0,includeByes:false,divId};if(!t.pools)t.pools=[];t.pools.push(p);activePool=p.id;activeTab='setup';save();closeModal();render();wizardNotify('pool-created');}
 function openAddDivisionModal(){let rows=state.divisions.map((d,i)=>`<div style="display:flex;align-items:center;gap:7px;margin-bottom:5px"><input type="text" value="${esc(d.name)}" style="flex:1" oninput="state.divisions[${i}].name=this.value;save()"><button class="btn btn-sm btn-danger" onclick="removeDivision(${i})">✕</button></div>`).join('');document.getElementById('modal-inner').innerHTML=`<div class="modal-title">Divisions</div><div id="div-rows">${rows}</div><button class="btn btn-ghost btn-sm" style="margin-top:7px" onclick="addDivRow()">+ Add</button><div class="modal-actions"><button class="btn btn-primary" onclick="closeModal();render()">Done</button></div>`;showModal();}
 function addDivRow(){const d={id:uid(),name:'Division '+(state.divisions.length+1)};state.divisions.push(d);save();const rows=document.getElementById('div-rows');const i=state.divisions.length-1;const div=document.createElement('div');div.style.cssText='display:flex;align-items:center;gap:7px;margin-bottom:5px';div.innerHTML=`<input type="text" value="${esc(d.name)}" style="flex:1" oninput="state.divisions[${i}].name=this.value;save()"><button class="btn btn-sm btn-danger" onclick="removeDivision(${i})">✕</button>`;rows.appendChild(div);}
 function removeDivision(i){const divId=state.divisions[i].id;state.divisions.splice(i,1);(state.tournaments||[]).forEach(t=>(t.pools||[]).forEach(p=>{if(p.divId===divId)p.divId='';}));save();closeModal();render();}
-function openTiebreakerModal(){const p=pool();if(!p)return;const tb=p.tiebreakers||['sets','headtohead','pointdiff'];const all=['sets','matches','headtohead','pointdiff'];const labels={sets:'Sets won',matches:'Match wins',headtohead:'Head-to-head',pointdiff:'Point differential'};const mkOpts=(sel)=>all.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${labels[t]}</option>`).join('');document.getElementById('modal-inner').innerHTML=`<div class="modal-title">Tiebreaker order</div><div class="modal-row"><label>1st</label><select id="tb1" style="width:100%">${mkOpts(tb[0])}</select></div><div class="modal-row"><label>2nd</label><select id="tb2" style="width:100%">${mkOpts(tb[1])}</select></div><div class="modal-row"><label>3rd</label><select id="tb3" style="width:100%">${mkOpts(tb[2])}</select></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doSaveTb()">Save</button></div>`;showModal();}
+function openTiebreakerModal(){
+  const p=pool();if(!p)return;
+  const bball=isBball(p);
+  const defaultTB=bball?['matches','headtohead','pointdiff']:['sets','headtohead','pointdiff'];
+  const tb=p.tiebreakers||defaultTB;
+  const vbAll=['sets','matches','headtohead','pointdiff','pointratio'];
+  const bbAll=['matches','headtohead','pointdiff','pointratio'];
+  const all=bball?bbAll:vbAll;
+  const labels={sets:'Sets won (VB)',matches:bball?'Most wins':'Match wins',headtohead:'Head-to-head',pointdiff:'Point differential (+/−)',pointratio:'Point ratio (Pts For ÷ Pts Against)'};
+  const mkOpts=(sel)=>all.map(t=>`<option value="${t}" ${sel===t?'selected':''}>${labels[t]}</option>`).join('');
+  const note=bball?'<div style="font-size:11px;color:var(--blue);background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;padding:7px 10px;margin-bottom:10px">🏀 Basketball tiebreaker order. Wins are always the primary sort.</div>':'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">Tiebreakers apply in order when teams have equal standing on previous criteria.</div>';
+  document.getElementById('modal-inner').innerHTML=`<div class="modal-title">Tiebreaker order</div>${note}<div class="modal-row"><label>1st tiebreaker</label><select id="tb1" style="width:100%">${mkOpts(tb[0]||all[0])}</select></div><div class="modal-row"><label>2nd tiebreaker</label><select id="tb2" style="width:100%">${mkOpts(tb[1]||all[1])}</select></div><div class="modal-row"><label>3rd tiebreaker</label><select id="tb3" style="width:100%">${mkOpts(tb[2]||all[2])}</select></div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doSaveTb()">Save</button></div>`;
+  showModal();
+}
 function doSaveTb(){const p=pool();if(!p)return;p.tiebreakers=[document.getElementById('tb1').value,document.getElementById('tb2').value,document.getElementById('tb3').value];save();closeModal();render();}
 function confirmDeletePool(){const p=pool();if(!p)return;document.getElementById('modal-inner').innerHTML=`<div class="modal-title">Delete "${esc(p.name)}"?</div><div class="modal-sub">All scores permanently removed.</div><div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-danger" onclick="doDeletePool()">Delete</button></div>`;showModal();}
 function doDeletePool(){const t=tournament();if(!t)return;t.pools=(t.pools||[]).filter(p=>p.id!==activePool);activePool=t.pools.length?t.pools[0].id:null;save();closeModal();render();}
