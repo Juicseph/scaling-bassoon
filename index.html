@@ -687,6 +687,173 @@ tr.drag-over td{border-top:2px solid var(--accent);}
 @keyframes jamFire{0%{background-position:0% 0}50%{background-position:100% 0}100%{background-position:200% 0}}
 
 /* ═══════════════════════════════════
+   MIAMI VICE THEME 🌴
+   Hot pink + cyan + deep purple, 1984
+═══════════════════════════════════ */
+[data-theme="miami"]{
+  --bg:#0d0018;--surface:#150025;--surface2:#1e003a;--surface3:#280050;
+  --border:#ff2d9b;--border2:#cc1a7a;--text:#ffffff;--text2:#ff9de2;--text3:#ff2d9b;
+  --accent:#ff2d9b;--accent2:#cc1a7a;--accent-bg:#2a001a;--accent-border:#ff2d9b;
+  --green:#00f5d4;--green-bg:#001a16;--green-border:#00f5d4;
+  --blue:#00d4ff;--blue-bg:#001a22;--blue-border:#00d4ff;
+  --gold:#ffcc00;--gold-bg:#1a1100;--gold-border:#ffcc00;
+  --purple:#bf00ff;--purple-bg:#1a0033;--purple-border:#bf00ff;
+  --r:6px;--sans:'Barlow',sans-serif;--mono:'DM Mono',monospace;--sb-width:240px;
+}
+[data-theme="miami"] body,[data-theme="miami"] .shell{background:#0d0018;}
+[data-theme="miami"] .sidebar{
+  background:linear-gradient(180deg,#150025 0%,#0d0018 100%);
+  border-right:1px solid #ff2d9b;
+  box-shadow:inset -1px 0 20px rgba(255,45,155,.1);
+}
+[data-theme="miami"] .main{background:#0d0018;}
+[data-theme="miami"] .sb-logo{
+  background:linear-gradient(90deg,#ff2d9b,#00d4ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  font-size:13px;letter-spacing:.18em;text-shadow:none;
+}
+[data-theme="miami"] .sb-tagline{color:#ff2d9b80;}
+[data-theme="miami"] .page-title{
+  background:linear-gradient(90deg,#ff2d9b,#bf00ff,#00d4ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  font-weight:800;font-size:24px;
+}
+[data-theme="miami"] .page-sub{color:#ff2d9b;}
+[data-theme="miami"] .card{
+  background:#150025;
+  border:1px solid #ff2d9b40;
+  border-radius:8px;
+  box-shadow:0 0 20px rgba(255,45,155,.08),inset 0 0 40px rgba(191,0,255,.03);
+}
+[data-theme="miami"] .card-title{
+  background:linear-gradient(90deg,#ff2d9b,#00d4ff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:.14em;
+}
+[data-theme="miami"] .tab-bar{background:#1e003a;border:1px solid #ff2d9b40;border-radius:6px;}
+[data-theme="miami"] .tab{color:#ff2d9b80;border-radius:5px;}
+[data-theme="miami"] .tab.active{
+  background:linear-gradient(135deg,#ff2d9b,#bf00ff);
+  color:#fff;
+  box-shadow:0 0 12px rgba(255,45,155,.4);
+}
+[data-theme="miami"] .btn{border-radius:6px;border-color:#ff2d9b60;color:#ff9de2;background:transparent;}
+[data-theme="miami"] .btn:hover{background:#2a001a;border-color:#ff2d9b;color:#fff;}
+[data-theme="miami"] .btn-primary{
+  background:linear-gradient(135deg,#ff2d9b,#bf00ff);
+  color:#fff;border:none;
+  box-shadow:0 0 14px rgba(255,45,155,.4);
+}
+[data-theme="miami"] .btn-primary:hover{background:linear-gradient(135deg,#ff4dab,#cc00ff);box-shadow:0 0 20px rgba(255,45,155,.6);}
+[data-theme="miami"] .btn-danger{color:#ff2d9b;border-color:#ff2d9b60;}
+[data-theme="miami"] .btn-danger:hover{background:#2a001a;}
+[data-theme="miami"] .btn-ok{background:#001a16;color:#00f5d4;border-color:#00f5d4;}
+[data-theme="miami"] .btn-ghost{border-color:#ff2d9b60;color:#ff2d9b;border-style:dashed;}
+[data-theme="miami"] .btn-ghost:hover{background:#2a001a;border-color:#ff2d9b;color:#fff;}
+[data-theme="miami"] .pill{border-radius:20px;border-color:#ff2d9b60;color:#ff9de2;}
+[data-theme="miami"] .pill:hover{background:#2a001a;}
+[data-theme="miami"] .pill.active{background:linear-gradient(135deg,#ff2d9b,#bf00ff);color:#fff;border:none;box-shadow:0 0 10px rgba(255,45,155,.4);}
+[data-theme="miami"] .pool-item:hover{background:#1e003a;}
+[data-theme="miami"] .pool-item.active{background:#2a001a;border-left:2px solid #ff2d9b;}
+[data-theme="miami"] .pool-item.active .pool-name{color:#ff2d9b;text-shadow:0 0 8px rgba(255,45,155,.5);}
+[data-theme="miami"] .tournament-pill:hover{background:#1e003a;}
+[data-theme="miami"] .tournament-pill.active{background:#2a001a;border-color:#ff2d9b;}
+[data-theme="miami"] .tournament-pill.active .tp-name{color:#ff2d9b;}
+[data-theme="miami"] .add-tournament-btn{border-color:#ff2d9b60;color:#ff2d9b;border-style:dashed;border-radius:6px;}
+[data-theme="miami"] .add-tournament-btn:hover{background:#2a001a;border-color:#ff2d9b;}
+[data-theme="miami"] .sb-add{border-color:#ff2d9b60;border-style:dashed;border-radius:6px;color:#ff2d9b;}
+[data-theme="miami"] .sb-add:hover{background:#2a001a;color:#fff;}
+[data-theme="miami"] .sb-foot-btn{background:#1e003a;border-color:#ff2d9b30;color:#ff9de2;border-radius:6px;font-size:11px;}
+[data-theme="miami"] .sb-foot-btn:hover{background:#2a001a;border-color:#ff2d9b;color:#fff;}
+[data-theme="miami"] input[type=text],[data-theme="miami"] input[type=number],[data-theme="miami"] select{
+  background:#0d0018;border-color:#ff2d9b40;color:#fff;
+}
+[data-theme="miami"] input:focus,[data-theme="miami"] select:focus{border-color:#ff2d9b;box-shadow:0 0 0 3px rgba(255,45,155,.2);}
+[data-theme="miami"] .score-box{background:#0d0018;border-color:#ff2d9b;color:#00d4ff;font-weight:700;font-size:20px;text-shadow:0 0 8px rgba(0,212,255,.6);}
+[data-theme="miami"] .score-box:focus{border-color:#00d4ff;background:#001a22;box-shadow:0 0 0 3px rgba(0,212,255,.2);}
+[data-theme="miami"] .score-sep{background:#150025;border-color:#ff2d9b40;color:#ff2d9b;}
+[data-theme="miami"] .bm-score-inp{background:#0d0018;border-color:#ff2d9b;color:#00d4ff;font-weight:700;font-size:17px;}
+[data-theme="miami"] .bm-score-inp:focus{border-color:#00d4ff;background:#001a22;}
+[data-theme="miami"] .bm-sep{color:#ff2d9b;}
+[data-theme="miami"] td{color:#fff;}
+[data-theme="miami"] th{color:#ff2d9b;letter-spacing:.08em;}
+[data-theme="miami"] tr:hover td{background:#1e003a;}
+[data-theme="miami"] tr.row-done td{opacity:.3;}
+[data-theme="miami"] tr.bye-row td{background:#1a1100;}
+[data-theme="miami"] .rank-num{background:#1e003a;color:#ff2d9b;border:1px solid #ff2d9b40;}
+[data-theme="miami"] .rank-1 .rank-num{background:linear-gradient(135deg,#ff2d9b,#bf00ff);color:#fff;border:none;box-shadow:0 0 10px rgba(255,45,155,.5);}
+[data-theme="miami"] .rank-2 .rank-num{background:#1e003a;color:#00d4ff;border:1px solid #00d4ff60;}
+[data-theme="miami"] .rank-3 .rank-num{background:#1a003a;color:#bf00ff;border:1px solid #bf00ff60;}
+[data-theme="miami"] .pos{color:#00f5d4;text-shadow:0 0 6px rgba(0,245,212,.5);}
+[data-theme="miami"] .neg{color:#ff2d9b;}
+[data-theme="miami"] .zer{color:#ff2d9b40;}
+[data-theme="miami"] .mw{color:#00f5d4;}
+[data-theme="miami"] .ml{color:#ff2d9b40;}
+[data-theme="miami"] .progress-wrap{background:#150025;border-color:#ff2d9b30;}
+[data-theme="miami"] .progress-bar{background:#1e003a;}
+[data-theme="miami"] .progress-label{color:#ff9de2;}
+[data-theme="miami"] .progress-count{color:#ff2d9b60;}
+[data-theme="miami"] .progress-fill{background:linear-gradient(90deg,#ff2d9b,#bf00ff,#00d4ff);background-size:200% 100%;animation:miamiWave 3s linear infinite;}
+[data-theme="miami"] .progress-fill.done{background:linear-gradient(90deg,#00f5d4,#00d4ff);animation:none;}
+[data-theme="miami"] .modal{background:#150025;border:1px solid #ff2d9b;border-radius:10px;box-shadow:0 0 40px rgba(255,45,155,.25),0 0 80px rgba(191,0,255,.1);}
+[data-theme="miami"] .modal-title{background:linear-gradient(90deg,#ff2d9b,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;}
+[data-theme="miami"] .modal-sub{color:#ff9de2;}
+[data-theme="miami"] .modal-row label{color:#ff2d9b;font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
+[data-theme="miami"] .sets-opt{border-color:#ff2d9b40;color:#ff9de2;border-radius:6px;}
+[data-theme="miami"] .sets-opt:hover{background:#2a001a;border-color:#ff2d9b;}
+[data-theme="miami"] .sets-opt.active{background:linear-gradient(135deg,#ff2d9b,#bf00ff);color:#fff;border:none;box-shadow:0 0 10px rgba(255,45,155,.3);}
+[data-theme="miami"] .bm{background:#150025;border:1px solid #ff2d9b40;border-radius:6px;box-shadow:0 0 12px rgba(255,45,155,.1);}
+[data-theme="miami"] .bm.bm-active{border-color:#00d4ff;box-shadow:0 0 14px rgba(0,212,255,.25);}
+[data-theme="miami"] .bt{border-bottom-color:#ff2d9b20;color:#fff;}
+[data-theme="miami"] .bt.winner{background:linear-gradient(90deg,#001a16,#002a20);color:#00f5d4;text-shadow:0 0 8px rgba(0,245,212,.5);}
+[data-theme="miami"] .bt.loser{opacity:.3;}
+[data-theme="miami"] .bt.tbd{color:#ff2d9b40;}
+[data-theme="miami"] .bt-score{color:#00d4ff;text-shadow:0 0 6px rgba(0,212,255,.5);}
+[data-theme="miami"] .bm-score-row{background:#0d0018;border-top:1px solid #ff2d9b20;}
+[data-theme="miami"] .bracket-connector{border-top-color:#ff2d9b30;}
+[data-theme="miami"] .badge-done{background:#001a16;color:#00f5d4;border-color:#00f5d4;}
+[data-theme="miami"] .badge-bye{background:#1a1100;color:#ffcc00;border-color:#ffcc00;}
+[data-theme="miami"] .tie-card{background:#1a0033;border:1px solid #bf00ff;}
+[data-theme="miami"] .tie-group{background:#150025;border-color:#ff2d9b30;}
+[data-theme="miami"] .tie-teams{color:#ff9de2;}
+[data-theme="miami"] .tie-verdict{color:#00f5d4;}
+[data-theme="miami"] .tie-still{color:#ffcc00;}
+[data-theme="miami"] .hist-card{background:#150025;border-color:#ff2d9b30;}
+[data-theme="miami"] .hist-team{color:#ff2d9b;}
+[data-theme="miami"] .hist-row{border-bottom-color:#ff2d9b15;color:#fff;}
+[data-theme="miami"] .hist-result.w{color:#00f5d4;text-shadow:0 0 6px rgba(0,245,212,.4);}
+[data-theme="miami"] .hist-result.l{color:#ff2d9b;}
+[data-theme="miami"] .court-card{background:#150025;border-color:#ff2d9b30;}
+[data-theme="miami"] .court-num{color:#ff2d9b;letter-spacing:.15em;}
+[data-theme="miami"] .toggle-slider{background:#280050;}
+[data-theme="miami"] .toggle input:checked+.toggle-slider{background:linear-gradient(90deg,#ff2d9b,#bf00ff);}
+[data-theme="miami"] .toggle-label{color:#fff;}
+[data-theme="miami"] .toggle-sub{color:#ff2d9b60;}
+[data-theme="miami"] .cnt-btn{background:#1e003a;border-color:#ff2d9b;color:#ff2d9b;}
+[data-theme="miami"] .cnt-btn:hover{color:#00d4ff;border-color:#00d4ff;background:#001a22;}
+[data-theme="miami"] .cnt-num{color:#00d4ff;text-shadow:0 0 10px rgba(0,212,255,.5);}
+[data-theme="miami"] .cnt-lbl{color:#ff2d9b60;}
+[data-theme="miami"] .team-num-badge{background:#1e003a;border-color:#ff2d9b30;color:#ff2d9b;}
+[data-theme="miami"] .drag-handle{color:#ff2d9b30;}
+[data-theme="miami"] .session-sel{background:#0d0018;border-color:#ff2d9b40;color:#fff;}
+[data-theme="miami"] .bc0{background:#2a001a;color:#ff2d9b;border-color:#ff2d9b;}
+[data-theme="miami"] .bc1{background:#001a22;color:#00d4ff;border-color:#00d4ff;}
+[data-theme="miami"] .bc2{background:#001a16;color:#00f5d4;border-color:#00f5d4;}
+[data-theme="miami"] .welcome-title{background:linear-gradient(90deg,#ff2d9b,#bf00ff,#00d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:28px;}
+[data-theme="miami"] .welcome-sub{color:#ff9de2;}
+[data-theme="miami"] .welcome-icon{filter:drop-shadow(0 0 12px #ff2d9b);}
+[data-theme="miami"] .div-label{color:#ff2d9b50;letter-spacing:.12em;}
+[data-theme="miami"] .sb-section{color:#ff2d9b40;letter-spacing:.15em;}
+[data-theme="miami"] .theme-toggle{border-color:#ff2d9b40;color:#ff9de2;border-radius:20px;}
+[data-theme="miami"] .sidebar-collapse-btn{color:#ff2d9b;}
+[data-theme="miami"] .view-banner{background:#1a0033;border-bottom-color:#ff2d9b;color:#ff9de2;}
+[data-theme="miami"] .award-pos-1{background:#1a0033;color:#ff2d9b;border-color:#ff2d9b;}
+[data-theme="miami"] .award-pos-mvp{background:#001a22;color:#00d4ff;border-color:#00d4ff;}
+[data-theme="miami"] .pool-dot{box-shadow:0 0 6px currentColor;}
+[data-theme="miami"] .progress-count{color:#ff2d9b60;}
+@keyframes miamiWave{0%{background-position:0% 0}100%{background-position:200% 0}}
+
+/* ═══════════════════════════════════
    APPLE CLASSIC THEME 🍎
    Platinum / System 7 / Aqua Lite
 ═══════════════════════════════════ */
@@ -922,8 +1089,8 @@ let editingMatchIdx=null;
 
 // ── THEME ──
 function loadTheme(){const t=localStorage.getItem('tt_theme')||'modern';document.documentElement.setAttribute('data-theme',t);updateThemeBtn(t);}
-function updateThemeBtn(t){const btn=document.getElementById('theme-btn');if(!btn)return;if(t==='modern')btn.innerHTML='🕹 <span>90s</span>';else if(t==='90s')btn.innerHTML='✨ <span>Trendy</span>';else if(t==='trendy')btn.innerHTML='💼 <span>Pro</span>';else if(t==='pro')btn.innerHTML='🔥 <span>JAM</span>';else if(t==='nbajam')btn.innerHTML='🍎 <span>Apple</span>';else btn.innerHTML='🌿 <span>Modern</span>';}
-function cycleTheme(){const cur=document.documentElement.getAttribute('data-theme')||'modern';const next=cur==='modern'?'90s':cur==='90s'?'trendy':cur==='trendy'?'pro':cur==='pro'?'nbajam':cur==='nbajam'?'apple':'modern';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('tt_theme',next);updateThemeBtn(next);}
+function updateThemeBtn(t){const btn=document.getElementById('theme-btn');if(!btn)return;const names={modern:'🌿 Modern',['90s']:'🕹 90s',trendy:'✨ Trendy',pro:'💼 Pro',nbajam:'🔥 JAM',apple:'🍎 Apple',miami:'🌴 Miami'};btn.innerHTML=`<span>${names[t]||'🌿 Modern'}</span>`;}
+function cycleTheme(){const cur=document.documentElement.getAttribute('data-theme')||'modern';const next=cur==='modern'?'90s':cur==='90s'?'trendy':cur==='trendy'?'pro':cur==='pro'?'nbajam':cur==='nbajam'?'apple':cur==='apple'?'miami':'modern';document.documentElement.setAttribute('data-theme',next);localStorage.setItem('tt_theme',next);updateThemeBtn(next);}
 loadTheme();
 function toggleSidebar(){
   const sb=document.getElementById('sidebar');
