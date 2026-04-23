@@ -3518,43 +3518,57 @@ let syncBinId=SYNC_BIN||localStorage.getItem('tt_binId')||'';
 let _pollTimer=null;
 let _pushDebounce=null;
 let _lastPushHash='';
+let _lastRemoteTs=0;
+let _lastLocalPushTs=0;
 
 function stateHash(){
   // Simple hash to detect changes
   try{const s=JSON.stringify({scores:state.tournaments?.map(t=>t.pools?.map(p=>({s:p.scores,b:p.bracketScores})))});let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h)+s.charCodeAt(i);h|=0;}return h;}catch(e){return 0;}
 }
 
-// Auto-push whenever save() is called — debounced 800ms
+// Auto-push whenever save() is called — debounced 600ms
 function schedulePush(){
   if(!syncBinId||!localStorage.getItem('tt_apikey'))return;
   if(_pushDebounce)clearTimeout(_pushDebounce);
-  _pushDebounce=setTimeout(()=>pushToBin(syncBinId,false),800);
+  _pushDebounce=setTimeout(()=>pushToBin(syncBinId,false),600);
 }
 
 async function pushToBin(binId,showFeedback=false){
   if(!binId)return false;
   const key=localStorage.getItem('tt_apikey');if(!key)return false;
+  const now=Date.now();
   try{
     const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
       method:'PUT',
       headers:{'Content-Type':'application/json','X-Master-Key':key},
-      body:JSON.stringify({state,updated:Date.now(),pin:_editorPin?btoa(_editorPin):'',v:2})
+      body:JSON.stringify({state,updated:now,pin:_editorPin?btoa(_editorPin):'',v:2})
     });
     if(!res.ok)throw new Error('HTTP '+res.status);
+    _lastLocalPushTs=now;
+    _lastRemoteTs=now; // treat our own push as the latest remote
     _lastPushHash=stateHash();
-    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='✓ Pushed';el.style.color='var(--green)';setTimeout(()=>{if(el)el.textContent='';},2000);}}
+    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='✓ Pushed to cloud';el.style.color='var(--green)';setTimeout(()=>{if(el)el.textContent='';},2500);}}
+    showSyncPulse();
     return true;
   }catch(e){
-    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='⚠ Push failed';el.style.color='var(--accent)';}}
+    if(showFeedback){const el=document.getElementById('sync-status');if(el){el.textContent='⚠ Push failed: '+e.message;el.style.color='var(--accent)';}}
     return false;
   }
 }
 
 async function pullFromBin(binId,key){
-  if(!binId||!key)return null;
+  if(!binId)return null;
   try{
-    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':key,'X-Access-Key':key}});
-    if(!res.ok)return null;
+    // Public bins can be read without auth; include key as fallback for private
+    const headers={'X-Master-Key':key};
+    const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers});
+    if(!res.ok){
+      // Try without auth (public bin)
+      const res2=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`);
+      if(!res2.ok)return null;
+      const data2=await res2.json();
+      return data2.record||null;
+    }
     const data=await res.json();
     return data.record||null;
   }catch(e){return null;}
@@ -3562,23 +3576,25 @@ async function pullFromBin(binId,key){
 
 function startPolling(){
   if(_pollTimer)clearInterval(_pollTimer);
-  const binId=syncBinId;const key=localStorage.getItem('tt_apikey');
-  if(!binId||!key)return;
+  const binId=syncBinId;
+  const key=localStorage.getItem('tt_apikey')||'';
+  if(!binId)return;
+  const interval=IS_VIEW?12000:20000; // 12s for viewers, 20s for editors
   _pollTimer=setInterval(async()=>{
     const rec=await pullFromBin(binId,key);
     if(!rec||!rec.state)return;
-    // Only update if remote is newer and different from our last push
-    if(rec.updated&&rec.updated>Date.now()-60000){
-      const remoteHash=JSON.stringify(rec.state.tournaments?.map(t=>t.pools?.map(p=>p.scores)));
-      const localHash=JSON.stringify(state.tournaments?.map(t=>t.pools?.map(p=>p.scores)));
-      if(remoteHash!==localHash){
-        state=rec.state;
-        save();render();
-        // Show subtle "updated" indicator
-        showSyncPulse();
-      }
-    }
-  },IS_VIEW?15000:30000); // viewers poll every 15s, editors every 30s
+    // Compare remote vs local update timestamps
+    const remoteTs=rec.updated||0;
+    if(remoteTs<=_lastRemoteTs)return; // already have this version
+    _lastRemoteTs=remoteTs;
+    // Skip if we pushed this ourselves (within 3s tolerance)
+    if(remoteTs<_lastLocalPushTs+3000&&_lastLocalPushTs>0)return;
+    // Apply remote state
+    state=rec.state;
+    try{localStorage.setItem('tt_v8',JSON.stringify(state));}catch(e){}
+    render();
+    showSyncPulse();
+  },interval);
 }
 
 function showSyncPulse(){
@@ -3790,14 +3806,15 @@ async function initViewerSync(){
   const rec=await pullFromBin(SYNC_BIN,key);
   if(!rec||!rec.state)return;
   state=rec.state;
+  _lastRemoteTs=rec.updated||0; // record so polling won't re-apply same version
   if(!IS_VIEW){
-    // Co-editor who unlocked
     _editorPin='';
     try{_editorPin=rec.pin?atob(rec.pin):'';}catch(e){}
   }
   activeTournament=(state.tournaments||[]).length?state.tournaments[0].id:null;
   if(state.tournaments?.length){const t=state.tournaments[0];if(t.pools?.length)activePool=t.pools[0].id;}
-  save();render();
+  try{localStorage.setItem('tt_v8',JSON.stringify(state));}catch(e){}
+  render();
   startPolling();
   showViewBanner();
 }
