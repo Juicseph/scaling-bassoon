@@ -2823,7 +2823,9 @@ function rankTeams(p){
   return Object.entries(stats).map(([id,s])=>({
     id:Number(id),...s,
     pm:s.pf-s.pa,
-    pr:s.pa>0?Math.round((s.pf/s.pa)*10000)/10000:s.pf>0?9999:1
+    pr:s.pa>0?Math.round((s.pf/s.pa)*10000)/10000:s.pf>0?9999:1,
+    mwpct:(s.mw+s.ml)>0?Math.round(s.mw/(s.mw+s.ml)*1000)/10:null,
+    swpct:(s.sw+s.sl)>0?Math.round(s.sw/(s.sw+s.sl)*1000)/10:null
   })).sort((a,b)=>{
     // Always sort by match wins first for basketball, sets first for volleyball
     if(bball&&b.mw!==a.mw)return b.mw-a.mw;
@@ -2963,6 +2965,12 @@ function renderSetup(p){
     <button class="btn btn-primary" id="generate-btn" onclick="generateSchedule()">Generate schedule →</button>
     <button class="btn btn-ghost" onclick="openTeamLibraryModal()">👥 Team library</button>
     <button class="btn btn-ghost" onclick="openAddDivisionModal()">Manage divisions</button>
+  </div>
+  <div class="card" style="margin-top:11px"><div class="card-title">Multi-Phase Tournament</div>
+    <div class="toggle-row"><label class="toggle"><input type="checkbox" ${p.usePowerPools?'checked':''} onchange="setField('usePowerPools',this.checked);render()"><span class="toggle-slider"></span></label>
+      <div><div class="toggle-label">Enable Power Pools</div><div class="toggle-sub">Pool play → Power Pools (reseeded) → Gold / Silver / Bronze brackets</div></div>
+    </div>
+    ${p.usePowerPools?'<div style="margin-top:10px;padding:10px 12px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:7px;font-size:12px;line-height:1.7;color:var(--blue)"><b>How it works:</b> 1. Complete pool play &amp; enter scores → 2. Go to Standings → click "Create Power Pools" → 3. Teams are reseeded into Gold / Silver / Bronze groups → 4. Run each bracket separately.</div>':''}
   </div>`;
 }
 
@@ -3063,11 +3071,11 @@ function renderScores(p){
       <td class="c mono" style="font-size:11px;color:var(--text3)">${m.court||''}</td>
       <td><b style="font-size:12px">${esc(ta)}</b><span style="color:var(--text3);font-size:10px"> v </span><b style="font-size:12px">${esc(tb2)}</b>${mResult}${done?` <span class="badge badge-done" style="font-size:9px">✓</span>`:''}</td>
       ${setHtml}
-      <td style="white-space:nowrap">${!IS_VIEW?`<button class="btn btn-sm" id="sb${idx}" onclick="flashSave(${idx})">Save</button> <button class="btn btn-sm" onclick="startEditing(${idx})" title="Edit match">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteMatch(${idx})" title="Delete">✕</button>`:''}</td></tr>`;
+      <td class="c" style="min-width:60px">${IS_VIEW?`<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">${esc(m.ref||'NT')}</span>`:`<input type="text" value="${esc(m.ref||'')}" placeholder="NT" title="Ref team" style="width:54px;padding:2px 4px;font-size:11px;font-family:var(--mono);text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--surface2)" oninput="setMatchRef(${idx},this.value)">`}</td><td style="white-space:nowrap">${!IS_VIEW?`<button class="btn btn-sm" id="sb${idx}" onclick="flashSave(${idx})">Save</button> <button class="btn btn-sm" onclick="startEditing(${idx})" title="Edit match">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteMatch(${idx})" title="Delete">✕</button>`:''}</td></tr>`;
   });
   if(!rows)rows=`<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text3)">No matches for this session.</td></tr>`;
   const setLabels=oneSet?['Set 1']:maxSets===1?['Set 1']:maxSets===2?['Set 1','Set 2']:['Set 1','Set 2','Set 3'];
-  return filters+`<div class="card tbl-wrap"><table id="match-table"><thead><tr><th style="width:16px"></th><th>Session</th><th class="c">Crt</th><th>Match</th>${setLabels.map(l=>`<th class="c">${l}</th>`).join('')}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  return filters+`<div class="card tbl-wrap"><table id="match-table"><thead><tr><th style="width:16px"></th><th>Session</th><th class="c">Crt</th><th>Match</th>${setLabels.map(l=>`<th class="c">${l}</th>`).join('')}<th class="c" title="Officiating team">Ref</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ── BASKETBALL SCORE ENTRY ──
@@ -3108,20 +3116,24 @@ function renderScoresBball(p){
     // Total display
     const totalDisplay=done?`<td class="c" style="font-family:var(--mono);font-size:13px;font-weight:700"><span style="color:${winner==='a'?'var(--green)':'var(--text2)'}">${totalA}</span><span style="color:var(--text3);margin:0 4px">—</span><span style="color:${winner==='b'?'var(--green)':'var(--text2)'}">${totalB}</span></td>`:'<td class="c" style="color:var(--text3);font-size:11px">—</td>';
     const sessionSel=IS_VIEW?`<span style="font-size:10px;color:var(--text3)">${esc(dNm)}</span>`:`<select class="session-sel" onchange="setMatchDay(${idx},this.value)">${p.days.map((d2,di2)=>`<option value="${di2}" ${m.dayIdx===di2?'selected':''}>${esc(dayName(d2))}</option>`).join('')}</select>`;
-    rows+=`<tr class="${done?'row-done':''}" data-idx="${idx}" draggable="${!IS_VIEW}">
-      <td><span class="drag-handle" data-idx="${idx}">⠿</span></td>
-      <td>${sessionSel}</td>
-      <td class="c mono" style="font-size:11px;color:var(--text3)">${m.court||''}</td>
-      <td><b style="font-size:12px">${esc(ta)}</b><span style="color:var(--text3);font-size:10px"> v </span><b style="font-size:12px">${esc(tb2)}</b>${winner?`<span style="font-size:10px;font-family:var(--mono);margin-left:5px;color:var(--green)">${winner==='a'?esc(ta):esc(tb2)} wins</span>`:''}</td>
-      ${periodHtml}
-      ${totalDisplay}
-      <td>${!IS_VIEW?`<button class="btn btn-sm" id="sb${idx}" onclick="flashSave(${idx})">Save</button> <button class="btn btn-sm" onclick="startEditing(${idx})">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteMatch(${idx})">✕</button>`:''}</td>
-    </tr>`;
+    const winsStr=winner?('<span style="font-size:10px;font-family:var(--mono);margin-left:5px;color:var(--green)">'+(winner==='a'?esc(ta):esc(tb2))+' wins</span>'):'';
+    const refCell='<td class="c" style="min-width:60px">'+(IS_VIEW?('<span style="font-family:var(--mono);font-size:11px;color:var(--text3)">'+esc(m.ref||'NT')+'</span>'):('<input type="text" value="'+esc(m.ref||'')+'" placeholder="NT" title="Ref team" style="width:54px;padding:2px 4px;font-size:11px;font-family:var(--mono);text-align:center;border:1px solid var(--border);border-radius:4px;background:var(--surface2)" oninput="setMatchRef('+idx+',this.value)">'))+'</td>';
+    const actCell='<td>'+(IS_VIEW?'':'<button class="btn btn-sm" id="sb'+idx+'" onclick="flashSave('+idx+')">Save</button> <button class="btn btn-sm" onclick="startEditing('+idx+')">✏️</button> <button class="btn btn-sm btn-danger" onclick="deleteMatch('+idx+')">✕</button>')+'</td>';
+    rows+='<tr class="'+(done?'row-done':'')+'" data-idx="'+idx+'" draggable="'+(!IS_VIEW)+'">'
+      +'<td><span class="drag-handle" data-idx="'+idx+'">⠿</span></td>'
+      +'<td>'+sessionSel+'</td>'
+      +'<td class="c mono" style="font-size:11px;color:var(--text3)">'+(m.court||'')+'</td>'
+      +'<td><b style="font-size:12px">'+esc(ta)+'</b><span style="color:var(--text3);font-size:10px"> v </span><b style="font-size:12px">'+esc(tb2)+'</b>'+winsStr+'</td>'
+      +periodHtml
+      +totalDisplay
+      +refCell+actCell
+      +'</tr>';
   });
-  if(!rows)rows=`<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text3)">No games for this session.</td></tr>`;
-  const periodHeaders=periodCols.map(l=>`<th class="c">${l}</th>`).join('');
+  if(!rows)rows='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text3)">No games for this session.</td></tr>';
+  const periodHeaders=periodCols.map(l=>'<th class="c">'+l+'</th>').join('');
   const totalHeader=periods!=='final'?'<th class="c">Total</th>':'';
-  return filters+`<div class="card tbl-wrap"><table id="match-table"><thead><tr><th style="width:16px"></th><th>Session</th><th class="c">Crt</th><th>Game</th>${periodHeaders}${totalHeader}<th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const tbl='<div class="card tbl-wrap"><table id="match-table"><thead><tr><th style="width:16px"></th><th>Session</th><th class="c">Crt</th><th>Game</th>'+periodHeaders+totalHeader+'<th class="c" title="Officiating team">Ref</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  return filters+tbl;
 }
 function setBballScore(idx,field,val){
   const p=pool();if(!p||IS_VIEW)return;
@@ -3145,12 +3157,25 @@ function renderStandings(p){
     const name=p.teams[t.id]||'Team '+t.id;const seed=p.seeds&&p.seeds[t.id]?`<span style="font-family:var(--mono);font-size:9px;color:var(--text3);margin-left:3px">#${p.seeds[t.id]}</span>`:'';
     const rc=i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'';
     const prVal=t.pr?t.pr.toFixed(3):'—';
-    const prCell=t.pr>=1?`<span class="pos">${prVal}</span>`:t.pr<1?`<span class="neg">${prVal}</span>`:`<span class="zer">${prVal}</span>`;
-    rows+=`<tr class="${rc}"><td><div class="rank-cell"><div class="rank-num">${i+1}</div>${esc(name)}${seed}</div></td><td class="c mw">${t.mw}</td><td class="c ml">${t.ml}</td>${bball?'':`<td class="c mono">${t.sw}</td><td class="c mono">${t.sl}</td>`}<td class="c mono">${t.pf}</td><td class="c mono">${t.pa}</td><td class="c">${pmCell}</td><td class="c">${prCell}</td>${p.includeByes?`<td class="c" style="color:var(--gold);font-family:var(--mono)">${t.byes||0}</td>`:''}<td class="c" style="font-weight:700;font-family:var(--mono)">${i+1}</td></tr>`;
+    const prClass=t.pr>=1?'pos':t.pr<1?'neg':'zer';
+    const prCell='<span class="'+prClass+'">'+prVal+'</span>';
+    const mwpctStr=t.mwpct!==null?t.mwpct.toFixed(1)+'%':'—';
+    const swpctStr=(!bball&&t.swpct!==null)?t.swpct.toFixed(1)+'%':'—';
+    const setCols=bball?'':'<td class="c mono">'+t.sw+'</td><td class="c mono">'+t.sl+'</td><td class="c" style="font-family:var(--mono);font-size:11px;color:var(--text3)">'+swpctStr+'</td>';
+    const byeCol=p.includeByes?('<td class="c" style="color:var(--gold);font-family:var(--mono)">'+(t.byes||0)+'</td>'):'';
+    rows+='<tr class="'+rc+'"><td><div class="rank-cell"><div class="rank-num">'+(i+1)+'</div>'+esc(name)+seed+'</div></td>'
+      +'<td class="c mw">'+t.mw+'</td><td class="c ml">'+t.ml+'</td>'
+      +'<td class="c" style="font-family:var(--mono);font-size:11px;color:var(--text3)">'+mwpctStr+'</td>'
+      +setCols
+      +'<td class="c mono">'+t.pf+'</td><td class="c mono">'+t.pa+'</td>'
+      +'<td class="c">'+pmCell+'</td><td class="c">'+prCell+'</td>'
+      +byeCol
+      +'<td class="c" style="font-weight:700;font-family:var(--mono)">'+(i+1)+'</td></tr>';
   });
   const note=p.oneSetTiebreaker&&!bball?`<div style="margin-bottom:9px;padding:6px 10px;background:var(--purple-bg);border:1px solid var(--purple-border);border-radius:6px;font-size:11px;color:var(--purple)">⚡ One-set tiebreaker mode</div>`:'';
   const bballNote=bball?`<div style="margin-bottom:9px;padding:6px 10px;background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:6px;font-size:11px;color:var(--blue)">🏀 Basketball mode · W/L by total points scored</div>`:'';
-  return note+bballNote+renderTieSection(p,ranked)+`<div class="card tbl-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px"><div class="card-title" style="margin:0">Standings — ${esc(p.name)}</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">TB: ${tb.map(t=>tbL[t]||t).join(' → ')}</span></div><table><thead><tr><th>Team</th><th class="c">${bball?'W':'Match W'}</th><th class="c">${bball?'L':'Match L'}</th>${bball?'':`<th class="c">Sets W</th><th class="c">Sets L</th>`}<th class="c">Pts For</th><th class="c">Pts Against</th><th class="c">+/−</th><th class="c" title="Points Scored ÷ Points Allowed">Pt Ratio</th>${p.includeByes?'<th class="c">Byes</th>':''}<th class="c">Rank</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  const powerPoolsBtn=p.usePowerPools?`<div style="margin-bottom:12px;padding:12px 15px;background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div style="font-weight:700;font-size:13px">⚡ Power Pools Mode</div><div style="font-size:11px;color:var(--text3);margin-top:2px">After pool play, create power pools from these standings</div></div><button class="btn btn-primary" onclick="openPowerPoolsModal()">Create Power Pools →</button></div>`:'';
+  return note+bballNote+powerPoolsBtn+renderTieSection(p,ranked)+`<div class="card tbl-wrap"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:11px;flex-wrap:wrap;gap:7px"><div class="card-title" style="margin:0">Standings — ${esc(p.name)}</div><span style="font-size:10px;color:var(--text3);font-family:var(--mono)">TB: ${tb.map(t=>tbL[t]||t).join(' → ')}</span></div><table><thead><tr><th>Team</th><th class="c">${bball?'W':'Match W'}</th><th class="c">${bball?'L':'Match L'}</th><th class="c" title="Match Win %">M%</th>${bball?'':`<th class="c">Sets W</th><th class="c">Sets L</th><th class="c" title="Set Win %">S%</th>`}<th class="c">Pts For</th><th class="c">Pts Against</th><th class="c">+/−</th><th class="c" title="Points Scored ÷ Points Allowed">Pt Ratio</th>${p.includeByes?'<th class="c">Byes</th>':''}<th class="c">Rank</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 
 // ── TEAM HISTORY ──
@@ -3272,6 +3297,67 @@ function deleteAward(idx){
   save();render();
 }
 
+function openPowerPoolsModal(){
+  const p=pool();if(!p)return;
+  const ranked=rankTeams(p);const n=ranked.length;
+  // Default: top third Gold, middle Silver, bottom Bronze
+  const goldCut=Math.ceil(n/3),silverCut=Math.ceil(2*n/3);
+  document.getElementById('modal-inner').innerHTML=`
+    <div class="modal-title">⚡ Create Power Pools</div>
+    <div class="modal-sub">Teams are reseeded from final standings into Gold, Silver, and Bronze groups. Each group then runs its own bracket.</div>
+    <div style="background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:8px;padding:11px 14px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:12px;margin-bottom:8px">🥇 Gold Pool — teams 1 through:</div>
+      <input type="number" id="pp-gold" value="${goldCut}" min="1" max="${n-2}" style="width:68px;font-size:16px;text-align:center">
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">out of ${n} teams</span>
+    </div>
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:11px 14px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:12px;margin-bottom:8px">🥈 Silver Pool — teams ${goldCut+1} through:</div>
+      <input type="number" id="pp-silver" value="${silverCut}" min="${goldCut+1}" max="${n-1}" style="width:68px;font-size:16px;text-align:center">
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">out of ${n} teams</span>
+    </div>
+    <div style="background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:8px;padding:11px 14px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:12px;margin-bottom:4px">🥉 Bronze Pool — teams ${silverCut+1} through ${n}</div>
+      <div style="font-size:11px;color:var(--text3)">Remaining teams</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:8px">This will create 3 new pools in this tournament named "Gold Pool", "Silver Pool", "Bronze Pool" with teams pre-filled and seeded. Generate schedules for each separately.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="doCreatePowerPools()">Create Power Pools →</button>
+    </div>`;
+  showModal();
+}
+
+function doCreatePowerPools(){
+  const p=pool();const t=tournament();if(!p||!t)return;
+  const ranked=rankTeams(p);const n=ranked.length;
+  const goldEnd=parseInt(document.getElementById('pp-gold')?.value)||Math.ceil(n/3);
+  const silverEnd=parseInt(document.getElementById('pp-silver')?.value)||Math.ceil(2*n/3);
+  const groups=[
+    {name:p.name+' — Gold Pool',emoji:'🥇',teams:ranked.slice(0,goldEnd)},
+    {name:p.name+' — Silver Pool',emoji:'🥈',teams:ranked.slice(goldEnd,silverEnd)},
+    {name:p.name+' — Bronze Pool',emoji:'🥉',teams:ranked.slice(silverEnd)}
+  ];
+  groups.filter(g=>g.teams.length>0).forEach((g,gi)=>{
+    const newP=JSON.parse(JSON.stringify(p)); // copy pool settings
+    newP.id=uid();newP.name=g.name;
+    newP.numTeams=g.teams.length;
+    newP.teams={};newP.seeds={};
+    g.teams.forEach((team,idx)=>{
+      newP.teams[idx+1]=p.teams[team.id]||'Team '+team.id;
+      newP.seeds[idx+1]=idx+1; // reseed 1..n
+    });
+    newP.schedule=[];newP.scores={};newP.bracketScores={};
+    newP.usePowerPools=false; // power pools themselves don't spawn more
+    if(!t.pools)t.pools=[];
+    t.pools.push(newP);
+  });
+  save();closeModal();
+  // Switch to first new power pool
+  const newPools=t.pools.slice(-groups.filter(g=>g.teams.length>0).length);
+  if(newPools.length){activePool=newPools[0].id;activeTab='setup';}
+  render();
+  alert('✓ Power pools created! Each pool is pre-seeded. Go to Setup for each and click "Generate schedule →"');
+}
 function archiveTournament(tid){
   const t=state.tournaments.find(x=>x.id===tid);if(!t)return;
   if(!state.history)state.history=[];
@@ -3447,6 +3533,7 @@ function changeTeams(d){const p=pool();if(!p||IS_VIEW)return;p.numTeams=Math.max
 function setScore(idx,field,val){const p=pool();if(!p||IS_VIEW)return;if(!p.scores[idx])p.scores[idx]={};p.scores[idx][field]=val;save();const prog=matchProgress(p);const sub=document.querySelector('.page-sub');if(sub)sub.textContent=`${p.numTeams} teams · ${p.schedule.length} matches · ${prog.done}/${prog.total} complete`;const fill=document.querySelector('.progress-fill');if(fill&&prog.total){const pct=Math.round(prog.done/prog.total*100);fill.style.width=pct+'%';fill.className='progress-fill'+(pct===100?' done':'');}}
 function flashSave(idx){const btn=document.getElementById('sb'+idx);if(!btn)return;btn.textContent='✓';btn.classList.add('btn-ok');setTimeout(()=>{if(btn){btn.textContent='Save';btn.classList.remove('btn-ok');}},1200);}
 function setMatchDay(idx,dayIdx){const p=pool();if(!p||IS_VIEW)return;p.schedule[idx].dayIdx=parseInt(dayIdx);save();render();}
+function setMatchRef(idx,val){const p=pool();if(!p||IS_VIEW)return;p.schedule[idx].ref=val;save();}
 function setMatchCourt(idx,val){const p=pool();if(!p||IS_VIEW)return;p.schedule[idx].court=parseInt(val)||p.courtStart;save();}
 function setMatchTeam(idx,side,val){const p=pool();if(!p||IS_VIEW)return;p.schedule[idx][side]=parseInt(val);delete p.scores[idx];save();render();}
 function setMatchBye(idx,isBye2){const p=pool();if(!p||IS_VIEW)return;p.schedule[idx].bye=isBye2;if(isBye2){p.schedule[idx].b=0;delete p.scores[idx];}save();render();}
