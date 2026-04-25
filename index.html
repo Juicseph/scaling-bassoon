@@ -4035,6 +4035,7 @@ function showAbout(firstRun){
 .ab-list{margin:0;padding:0;list-style:none}
 .ab-list li{font-size:12px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.5}
 .ab-list li::before{content:'·';position:absolute;left:4px;color:var(--accent);font-weight:700}
+.ab-new{display:inline-block;font-size:9px;font-weight:700;background:var(--accent);color:#fff;border-radius:4px;padding:1px 5px;margin-left:5px;vertical-align:middle;letter-spacing:.04em}
 .ab-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
 .ab-theme-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
 .ab-theme-pill{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
@@ -4054,83 +4055,96 @@ function showAbout(firstRun){
 
   <div class="ab-section">
     <div class="ab-section-title"><span>⚡</span> Set Up in Minutes</div>
-    <div class="ab-sub" style="margin-bottom:8px">Create your tournament and get games rolling fast:</div>
-    <ul class="ab-list">
-      <li>Multiple tournaments with up to 10 pools each</li>
-      <li>Organize by division (12U, 14U, Open, etc.)</li>
-      <li>Add 3–75 teams per pool with optional seeding</li>
-      <li>Built-in team library with auto-fill + bulk paste</li>
-      <li>No spreadsheets. No formatting headaches.</li>
-    </ul>
-  </div>
-
-  <div class="ab-section">
-    <div class="ab-section-title"><span>📅</span> Smart Scheduling That Actually Works</div>
     <div class="ab-cols">
       <ul class="ab-list">
-        <li>Round robin (single or double)</li>
-        <li>Custom match limits per team</li>
-        <li>Automatic bye handling</li>
+        <li>Multiple tournaments, up to 10 pools each</li>
+        <li>Organize by division (12U, 14U, Open…)</li>
+        <li>3–75 teams per pool with optional seeding</li>
+        <li>Site director name per pool</li>
       </ul>
       <ul class="ab-list">
-        <li>Multi-day sessions &amp; locations</li>
-        <li>Auto court assignment</li>
-        <li>Drag, edit, or add matches on the fly</li>
+        <li>Team library — save up to 75 teams</li>
+        <li>Auto-suggest as you type team names</li>
+        <li>Bulk paste or fill from library</li>
+        <li>No spreadsheets, no formatting headaches</li>
       </ul>
     </div>
   </div>
 
   <div class="ab-section">
-    <div class="ab-section-title"><span>🏐🏀</span> Built for Volleyball &amp; Basketball</div>
+    <div class="ab-section-title"><span>📅</span> Smart Scheduling</div>
+    <div class="ab-cols">
+      <ul class="ab-list">
+        <li>Single or Double Round Robin</li>
+        <li>Custom match limits + auto byes</li>
+        <li>Multi-day sessions with locations</li>
+        <li>Auto court assignment</li>
+      </ul>
+      <ul class="ab-list">
+        <li>Drag to reorder matches</li>
+        <li>Inline edit (teams, court, session)</li>
+        <li>Add or delete matches anytime</li>
+        <li>Ref team per match — shows "NT" if blank<span class="ab-new">NEW</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="ab-section">
+    <div class="ab-section-title"><span>🏐🏀</span> Volleyball &amp; Basketball</div>
     <div class="ab-cols">
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Volleyball</div>
         <ul class="ab-list">
           <li>1 set, 2 sets, or Best of 3</li>
-          <li>Auto win detection</li>
-          <li>Smart set locking</li>
           <li>One-set tiebreaker mode</li>
+          <li>Smart set locking</li>
+          <li>Auto win detection</li>
         </ul>
       </div>
       <div>
         <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">Basketball</div>
         <ul class="ab-list">
-          <li>Final, halves, or quarters entry</li>
-          <li>Overtime tracking</li>
-          <li>Auto totals + winner detection</li>
+          <li>Final, halves, or quarters</li>
+          <li>OT column toggle</li>
           <li>Bracket OT auto-appears on tie</li>
+          <li>Basketball-specific tiebreakers</li>
         </ul>
       </div>
     </div>
   </div>
 
   <div class="ab-section">
-    <div class="ab-section-title"><span>📊</span> Live Standings That Explain Themselves</div>
+    <div class="ab-section-title"><span>📊</span> Live Standings</div>
     <ul class="ab-list">
-      <li>Real-time standings as scores come in</li>
-      <li>Custom tiebreaker order (sets, head-to-head, point diff, match wins)</li>
-      <li>Built-in tiebreaker explanation — no more arguments about 2nd place</li>
+      <li>Real-time updates as scores come in</li>
+      <li>Match Win % and Set Win % columns<span class="ab-new">NEW</span></li>
+      <li>Point Ratio (Pts For ÷ Pts Against)<span class="ab-new">NEW</span></li>
+      <li>Configurable tiebreaker order — sets, H2H, point diff, point ratio</li>
+      <li>Built-in tiebreaker explainer — shows exactly who broke the tie and how</li>
       <li>Export to CSV or print clean standings sheets</li>
     </ul>
   </div>
 
   <div class="ab-section">
-    <div class="ab-section-title"><span>🏅</span> Automatic Playoff Brackets</div>
+    <div class="ab-section-title"><span>🏅</span> Brackets &amp; Power Pools</div>
     <ul class="ab-list">
       <li>Auto-seeded single elimination from live standings</li>
-      <li>Sport-specific scoring (set-by-set for VB, final + OT for BB)</li>
+      <li>Sport-specific bracket scoring (VB sets, BB final + OT)</li>
       <li>Champion banner when final is complete</li>
-      <li>View-only mode so spectators can follow live</li>
+      <li><b>Power Pools mode</b> — Pool play → Gold / Silver / Bronze reseeding → separate brackets<span class="ab-new">NEW</span></li>
+      <li>View-only mode so spectators follow live</li>
     </ul>
   </div>
 
   <div class="ab-section">
-    <div class="ab-section-title"><span>📡</span> Share Scores Instantly</div>
+    <div class="ab-section-title"><span>📡</span> Multi-Device Live Sync</div>
     <ul class="ab-list">
-      <li>Live QR code — scan once, always current (no resending)</li>
-      <li>Viewer devices auto-refresh every 15 seconds</li>
-      <li>Share via link, text, or AirDrop</li>
-      <li>Offline fallback available without any account</li>
+      <li>Permanent live QR — scan once, always current, never resend<span class="ab-new">NEW</span></li>
+      <li><b>Multi-editor mode</b> — set a 4-digit PIN, co-editors enter scores from their phones<span class="ab-new">NEW</span></li>
+      <li>Owner's computer auto-polls for phone updates every 20s<span class="ab-new">NEW</span></li>
+      <li>Viewers auto-refresh every 12s with "Last updated" timestamp</li>
+      <li>Manual "↻ Pull now" button for instant refresh</li>
+      <li>Offline fallback — snapshot QR with no account needed</li>
     </ul>
   </div>
 
@@ -4139,21 +4153,22 @@ function showAbout(firstRun){
     <div class="ab-cols">
       <ul class="ab-list">
         <li>Court-by-court live view</li>
-        <li>Per-team match history</li>
+        <li>Per-team match history (VB &amp; BB scores)</li>
         <li>Tournament archive &amp; restore</li>
         <li>Copy pools into new events</li>
       </ul>
       <ul class="ab-list">
-        <li>Awards tracker (MVP, Best Setter, etc.)</li>
-        <li>Custom award names + notes</li>
-        <li>Site director name per pool</li>
-        <li>Collapsible sidebar for more space</li>
+        <li>Awards tracker (MVP, Best Setter, custom…)</li>
+        <li>Collapsible sidebar for more screen space</li>
+        <li>First-run About screen + guided wizard</li>
+        <li>Full reset with confirmation</li>
       </ul>
     </div>
   </div>
 
   <div class="ab-section">
     <div class="ab-section-title"><span>🎨</span> 16 Built-In Themes</div>
+    <div class="ab-sub" style="margin-bottom:8px">Pick from the dropdown in the sidebar — team logos embedded in college themes.</div>
     <div class="ab-theme-row">
       <span class="ab-theme-pill">🌿 Modern</span>
       <span class="ab-theme-pill">🕹️ 90s Retro</span>
@@ -4178,16 +4193,16 @@ function showAbout(firstRun){
     <div class="ab-section-title"><span>⚙️</span> Designed for Real Use</div>
     <div class="ab-cols">
       <ul class="ab-list">
-        <li>Works on any browser, any device</li>
-        <li>No install required — one HTML file</li>
-        <li>Auto-saves everything, instantly</li>
+        <li>One HTML file — no install, no server</li>
+        <li>Works on any device with a browser</li>
+        <li>Auto-saves everything instantly</li>
         <li>Add to Home Screen for app feel</li>
       </ul>
       <ul class="ab-list">
-        <li>Fully keyboard-friendly</li>
-        <li>Cloud sync for live score sharing</li>
-        <li>One-click reset to start fresh</li>
-        <li>Works offline, no internet needed</li>
+        <li>Fully keyboard-friendly score entry</li>
+        <li>Cloud sync via free JSONbin account</li>
+        <li>Works offline — no internet required</li>
+        <li>One-click full reset when needed</li>
       </ul>
     </div>
   </div>
@@ -4201,6 +4216,7 @@ function showAbout(firstRun){
       <span>Score trackers</span>
       <span>Group chats</span>
       <span>Printed schedules</span>
+      <span>TM2Sign</span>
     </div>
     <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--accent)">Open the file. Set up your pools. Run your event. That's it.</div>
   </div>
@@ -4224,11 +4240,12 @@ function addToLibrary(name){if(!name||name.startsWith('Team '))return;if(!state.
 function importFromLibrary(){
   const p=pool();if(!p||IS_VIEW)return;
   const lib=state.teamLibrary||[];if(!lib.length){alert('No teams in library yet. Use 📚 Manage team library to add teams.');return;}
-  document.getElementById('modal-inner').innerHTML=`<div class="modal-title">⚡ Fill from library</div>
-    <div class="modal-sub">Select teams to assign to this pool's ${p.numTeams} slots (in order).</div>
-    <div style="max-height:340px;overflow-y:auto;margin-bottom:10px">${lib.map((n,i)=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px"><input type="checkbox" value="${esc(n)}" id="lib-chk-${i}"> ${esc(n)}</label>`).join('')}</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:10px">First ${p.numTeams} selected will fill the slots.</div>
-    <div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doImportFromLib()">Apply selected</button></div>`;
+  const libItems=lib.map((n,i)=>'<label style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px"><input type="checkbox" value="'+esc(n)+'" id="lib-chk-'+i+'"> '+esc(n)+'</label>').join('');
+  document.getElementById('modal-inner').innerHTML='<div class="modal-title">⚡ Fill from library</div>'
+    +'<div class="modal-sub">Select teams to assign to this pool\'s '+p.numTeams+' slots (in order).</div>'
+    +'<div style="max-height:340px;overflow-y:auto;margin-bottom:10px">'+libItems+'</div>'
+    +'<div style="font-size:11px;color:var(--text3);margin-bottom:10px">First '+p.numTeams+' selected will fill the slots.</div>'
+    +'<div class="modal-actions"><button class="btn" onclick="closeModal()">Cancel</button><button class="btn btn-primary" onclick="doImportFromLib()">Apply selected</button></div>';
   showModal();
 }
 function doImportFromLib(){
